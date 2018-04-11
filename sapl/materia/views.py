@@ -621,7 +621,6 @@ class UnidadeTramitacaoCrud(CrudAux):
 class ProposicaoCrud(Crud):
     model = Proposicao
     help_topic = 'proposicao'
-    container_field = 'autor__user'
 
     class BaseMixin(Crud.BaseMixin):
         list_field_names = ['data_envio', 'data_recebimento', 'descricao',
