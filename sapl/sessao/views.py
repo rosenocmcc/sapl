@@ -1045,7 +1045,7 @@ def atualizar_mesa(request):
     lista_composicao = [(c.id, c.parlamentar.__str__(),
                          c.cargo.__str__()) for c in composicao_mesa]
     lista_parlamentares = [(
-        p.id, p.__str__()) for p in parlamentares_vagos]
+        p.id, p.__str__()) for p in parlamentares_vagos if p.ativo]
     lista_cargos = [(c.id, c.__str__()) for c in cargos_vagos]
 
     return JsonResponse(
