@@ -1,6 +1,6 @@
 from django.conf.urls import include, url
 
-from sapl.parlamentares.views import (CargoMesaCrud, ColigacaoCrud,
+from sapl.parlamentares.views import (CargoMesaCrud, CargoFrenteCrud, ColigacaoCrud,
                                       ComposicaoColigacaoCrud, DependenteCrud,
                                       FiliacaoCrud, FrenteCrud, FrenteList,
                                       LegislaturaCrud, MandatoCrud,
@@ -65,6 +65,7 @@ urlpatterns = [
         include(SessaoLegislativaCrud.get_urls())),
     url(r'^sistema/mesa-diretora/cargo-mesa/',
         include(CargoMesaCrud.get_urls())),
+    url(r'^sistema/frente/cargo/', include(CargoFrenteCrud.get_urls())),
 
     url(r'^mesa-diretora/$',
         MesaDiretoraView.as_view(), name='mesa_diretora'),

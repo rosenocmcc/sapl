@@ -29,12 +29,13 @@ from sapl.utils import parlamentares_ativos
 
 from .forms import (FiliacaoForm, FrenteForm, LegislaturaForm, MandatoForm,
                     ParlamentarCreateForm, ParlamentarForm, VotanteForm)
-from .models import (CargoMesa, Coligacao, ComposicaoColigacao, ComposicaoMesa,
+from .models import (CargoMesa, CargoFrente, Coligacao, ComposicaoColigacao, ComposicaoMesa,
                      Dependente, Filiacao, Frente, Legislatura, Mandato,
                      NivelInstrucao, Parlamentar, Partido, SessaoLegislativa,
                      SituacaoMilitar, TipoAfastamento, TipoDependente, Votante)
 
 CargoMesaCrud = CrudAux.build(CargoMesa, 'cargo_mesa')
+CargoFrenteCrud = CrudAux.build(CargoFrente, 'cargo_frente')
 PartidoCrud = CrudAux.build(Partido, 'partidos')
 TipoDependenteCrud = CrudAux.build(TipoDependente, 'tipo_dependente')
 NivelInstrucaoCrud = CrudAux.build(NivelInstrucao, 'nivel_instrucao')

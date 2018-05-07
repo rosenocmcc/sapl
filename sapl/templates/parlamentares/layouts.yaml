@@ -2,7 +2,9 @@
 CargoMesa:
   {% trans 'Cargo na Mesa'%}:
   - descricao:10  unico
-
+CargoFrente:
+  {% trans 'Cargo de Frente' %}:
+    - nome: 10 unico
 Legislatura:
   {% trans 'Legislatura' %}:
   - numero data_eleicao  data_inicio  data_fim

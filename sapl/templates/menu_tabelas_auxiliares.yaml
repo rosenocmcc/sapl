@@ -38,6 +38,9 @@
   - title: {% trans 'Coligação' %}
     url: sapl.parlamentares:coligacao_list
     css_class: btn btn-link
+  - title: {% trans 'Cargo de Frente' %}
+    url: sapl.parlamentares:cargofrente_list
+    css_class: btn btn-link
 - title: {% trans 'Módulo Mesa Diretora' %}
   css_class: head_title
   children:

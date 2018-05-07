@@ -330,6 +330,24 @@ class FrenteForm(ModelForm):
         )
         return frente
 
+    def clean(self):
+
+        cleaned_data = super(FrenteForm, self).clean()
+
+        if not self.is_valid():
+            return cleaned_data
+
+        parlamentar_id = self.instance.parlamentar_id
+
+        parlamentar = Parlamentar.objects.get(id=parlamentar_id)
+        cargos_unicos = [p.cargo.nome for p in parlamentar.frente_set.filter(cargo__unico=True)]
+
+        if cleaned_data['cargo'].nome in cargos_unicos:
+            msg = _('Este cargo é único para esta Frente')
+            raise ValidationError(msg)
+
+        return cleaned_data
+
 
 class VotanteForm(ModelForm):
 

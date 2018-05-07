@@ -466,6 +466,19 @@ class Mandato(models.Model):
                     f.data,
                     f.data_desfiliacao or timezone.datetime.max.date())]
 
+@reversion.register()
+class CargoFrente(models.Model):
+    nome = models.CharField(
+        max_length=50, verbose_name=_('Cargo'))
+    unico = models.BooleanField(
+        choices=YES_NO_CHOICES, verbose_name=_('Cargo Único'))
+
+    class Meta:
+        verbose_name = _('Cargo de Frente')
+        verbose_name_plural = _('Cargos de Frente')
+
+    def __str__(self):
+        return self.nome
 
 @reversion.register()
 class CargoMesa(models.Model):
@@ -518,6 +531,7 @@ class Frente(models.Model):
     data_extincao = models.DateField(
         blank=True, null=True, verbose_name=_('Data Dissolução'))
     descricao = models.TextField(blank=True, verbose_name=_('Descrição'))
+    cargo = models.ForeignKey(CargoFrente, on_delete=models.PROTECT)
 
     # campo conceitual de reversão genérica para o model Autor que dá a
     # o meio possível de localização de tipos de autores.
@@ -539,7 +553,7 @@ class Frente(models.Model):
         return Parlamentar.objects.filter(ativo=True)
 
     def __str__(self):
-        return self.nome
+        return '%s : %s' % (self.cargo, self.parlamentar)
 
 
 class Votante(models.Model):
