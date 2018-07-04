@@ -730,6 +730,15 @@ class PresencaView(FormMixin, PresencaMixin, DetailView):
                 sessao_plenaria_id=self.object.id).values_list(
                 'parlamentar_id', flat=True).distinct()
 
+            parlamentares = []
+
+            for presente in presentes_banco:
+                parlamentares.append(Parlamentar.objects.get(id=int(presente)))
+
+            parlamentares = sorted(parlamentares, key=lambda k: k.nome_parlamentar)
+
+            presentes_banco = [p.id for p in parlamentares if p.ativo is True]
+
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
                 + request.POST.getlist('presenca_inativos')
@@ -835,6 +844,15 @@ class PresencaOrdemDiaView(FormMixin, PresencaMixin, DetailView):
             presentes_banco = PresencaOrdemDia.objects.filter(
                 sessao_plenaria_id=self.object.id).values_list(
                 'parlamentar_id', flat=True).distinct()
+
+            parlamentares = []
+
+            for presente in presentes_banco:
+                parlamentares.append(Parlamentar.objects.get(id=int(presente)))
+
+            parlamentares = sorted(parlamentares, key=lambda k: k.nome_parlamentar)
+
+            presentes_banco = [p.id for p in parlamentares if p.ativo is True]
 
             # Id dos parlamentares presentes
             marcados = request.POST.getlist('presenca_ativos') \
