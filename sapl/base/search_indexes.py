@@ -6,6 +6,7 @@ from django.db.models import F, Q, Value
 from django.db.models.fields import TextField
 from django.db.models.functions import Concat
 from django.template import loader
+from haystack import connections
 from haystack.constants import Indexable
 from haystack.fields import CharField
 from haystack.indexes import SearchIndex
@@ -23,6 +24,10 @@ from sapl.utils import RemoveTag
 
 class TextExtractField(CharField):
 
+    backend = None
+
+    logger = logging.getLogger(__name__)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         assert self.model_attr
@@ -31,20 +36,16 @@ class TextExtractField(CharField):
             self.model_attr = (self.model_attr, )
 
     def solr_extraction(self, arquivo):
-        extracted_data = self._get_backend(None).extract_file_contents(
-            arquivo)['contents']
-        # Remove as tags xml
-        extracted_data = re.sub('<[^>]*>', '', extracted_data)
-        # Remove tags \t e \n
-        extracted_data = extracted_data.replace(
-            '\n', ' ').replace('\t', ' ')
-        # Remove sinais de pontuação
-        extracted_data = re.sub('[' + string.punctuation + ']',
-                                ' ', extracted_data)
-        # Remove espaços múltiplos
-        extracted_data = " ".join(extracted_data.split())
+        if not self.backend:
+            self.backend = connections['default'].get_backend()
+        try:
+            with open(arquivo.path, 'rb') as f:
+                data = self.backend.extract_file_contents(f)['contents']
+        except Exception as e:
+            self.print_error(arquivo, e)
+            data = ''
+        return data
 
-        return extracted_data
 
     def whoosh_extraction(self, arquivo):
 
@@ -59,10 +60,11 @@ class TextExtractField(CharField):
                 language='pt-br').decode('utf-8').replace('\n', ' ').replace(
                 '\t', ' ')
 
-    def print_error(self, arquivo):
-        msg = 'Erro inesperado processando arquivo: %s' % (
-            arquivo.path)
-        print(msg)
+    def print_error(self, arquivo, error):
+        msg = 'Erro inesperado processando arquivo %s erro: %s' % (
+            arquivo.path, error)
+        print(msg, error)
+        logger.error(msg, error)
 
     def file_extractor(self, arquivo):
         if not os.path.exists(arquivo.path) or \
@@ -73,19 +75,22 @@ class TextExtractField(CharField):
         if SOLR_URL:
             try:
                 return self.solr_extraction(arquivo)
-            except Exception:
-                self.print_error(arquivo)
+            except Exception as err:
+                print(str(err))
+                self.print_error(arquivo, err)
 
         # Em ambiente de DEV utiliza-se o Whoosh
         # Como ele não possui extração, faz-se uso do textract
         else:
             try:
                 return self.whoosh_extraction(arquivo)
-            except ExtensionNotSupported as e:
-                print(str(e))
-            except Exception as e2:
-                print(str(e2))
                 self.print_error(arquivo)
+            except ExtensionNotSupported as err:
+                print(str(err))
+                logger.error(str(err))
+            except Exception as err:
+                print(str(err))
+                self.print_error(arquivo, str(err))
         return ''
 
     def ta_extractor(self, value):
@@ -121,7 +126,9 @@ class TextExtractField(CharField):
             value = getattr(obj, attr)
             if not value:
                 continue
-            data += getattr(self, func)(value)
+            data += getattr(self, func)(value) + '  '
+
+        data = data.replace('\n', ' ')
 
         return data
 
@@ -146,6 +153,10 @@ class DocumentoAcessorioIndex(SearchIndex, Indexable):
             ('indexacao', 'string_extractor'),
         )
     )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.text.search_index = self
 
     def get_model(self):
         return self.model
