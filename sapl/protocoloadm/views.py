@@ -15,6 +15,7 @@ from django.views.generic import ListView, CreateView
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.edit import FormView
 from django_filters.views import FilterView
+from django.core.exceptions import ValidationError
 
 import sapl
 from sapl.base.models import Autor
@@ -285,6 +286,20 @@ class ProtocoloDocumentoView(PermissionRequiredMixin,
         except AttributeError:
             msg = _('É preciso definir a sequencia de ' +
                     'numeração na tabelas auxiliares!')
+            messages.add_message(self.request, messages.ERROR, msg)
+            return self.render_to_response(self.get_context_data())
+
+        try:
+            doc_anexado = False
+            if self.tipo_materia is not None:
+                doc_anexado = True
+            elif self.tipo_documento is not None:
+                doc_anexado = True
+
+            if doc_anexado:
+                raise ValidationError
+        except ValidationError:
+            msg = _('O protocolo já possui um documento vínculado!')
             messages.add_message(self.request, messages.ERROR, msg)
             return self.render_to_response(self.get_context_data())
 
