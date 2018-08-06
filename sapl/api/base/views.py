@@ -1,47 +1,17 @@
-import logging
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.filters import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
+from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
-from rest_framework.viewsets import GenericViewSet
 
-from sapl.api.forms import (AutorChoiceFilterSet, AutoresPossiveisFilterSet,
-                            AutorSearchForFieldFilterSet)
-from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
-                                  ChoiceSerializer,
-                                  MateriaLegislativaSerializer,
-                                  ModelChoiceSerializer,
-                                  SessaoPlenariaSerializer)
+from sapl.api.base.forms import AutoresPossiveisFilterSet,\
+    AutorSearchForFieldFilterSet, AutorChoiceFilterSet
+from sapl.api.base.serializers import AutorChoiceSerializer, AutorSerializer
+from sapl.api.serializers import (ChoiceSerializer)
 from sapl.base.models import Autor, TipoAutor
-from sapl.materia.models import MateriaLegislativa
-from sapl.sessao.models import SessaoPlenaria
-from sapl.utils import SaplGenericRelation
-
-
-class ModelChoiceView(ListAPIView):
-
-    # FIXME aplicar permissão correta de usuário
-    permission_classes = (IsAuthenticated,)
-    serializer_class = ModelChoiceSerializer
-
-    def get(self, request, *args, **kwargs):
-        self.model = ContentType.objects.get_for_id(
-            self.kwargs['content_type']).model_class()
-
-        pagination = request.GET.get('pagination', '')
-
-        if pagination == 'False':
-            self.pagination_class = None
-
-        return ListAPIView.get(self, request, *args, **kwargs)
-
-    def get_queryset(self):
-        return self.model.objects.all()
+from sapl.utils import SaplGenericRelation, sapl_logger
 
 
 class AutorListView(ListAPIView):
@@ -124,7 +94,6 @@ class AutorListView(ListAPIView):
                       qualquer atributo destes models podem ser passados
                       para busca
     """
-    logger = logging.getLogger(__name__)
 
     TR_AUTOR_CHOICE_SERIALIZER = 1
     TR_AUTOR_SERIALIZER = 3
@@ -139,21 +108,21 @@ class AutorListView(ListAPIView):
 
     @property
     def tr(self):
-        username = self.request.user.username
-
         try:
             tr = int(self.request.GET.get
                      ('tr', AutorListView.TR_AUTOR_CHOICE_SERIALIZER))
 
-            if tr not in (AutorListView.TR_AUTOR_CHOICE_SERIALIZER,
-                          AutorListView.TR_AUTOR_SERIALIZER):
-                return AutorListView.TR_AUTOR_CHOICE_SERIALIZER
-        except Exception as e:
-            self.logger.error('user=' + username + '. ' + str(e))
+            assert tr in (
+                AutorListView.TR_AUTOR_CHOICE_SERIALIZER,
+                AutorListView.TR_AUTOR_SERIALIZER), sapl_logger.info(
+                _("Tipo do Resultado a ser fornecido não existe!"))
+        except:
             return AutorListView.TR_AUTOR_CHOICE_SERIALIZER
-        return tr
+        else:
+            return tr
 
     def get(self, request, *args, **kwargs):
+
         if self.tr == AutorListView.TR_AUTOR_SERIALIZER:
             self.serializer_class = AutorSerializer
             self.permission_classes = (IsAuthenticated,)
@@ -165,7 +134,6 @@ class AutorListView(ListAPIView):
 
 
 class AutoresProvaveisListView(ListAPIView):
-    logger = logging.getLogger(__name__)
 
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Autor.objects.all()
@@ -177,14 +145,14 @@ class AutoresProvaveisListView(ListAPIView):
 
     def get_queryset(self):
         params = {'content_type__isnull': False}
-        username = self.request.user.username
+
         tipo = ''
         try:
             tipo = int(self.request.GET.get('tipo', ''))
             if tipo:
                 params['id'] = tipo
-        except Exception as e:
-            self.logger.error('user= ' + username + '. ' + str(e))
+        except:
+            pass
 
         tipos = TipoAutor.objects.filter(**params)
 
@@ -253,25 +221,3 @@ class AutoresPossiveisListView(ListAPIView):
 
     filter_class = AutoresPossiveisFilterSet
     serializer_class = AutorChoiceSerializer
-
-
-class MateriaLegislativaViewSet(ListModelMixin,
-                                RetrieveModelMixin,
-                                GenericViewSet):
-
-    permission_classes = (IsAuthenticated,)
-    serializer_class = MateriaLegislativaSerializer
-    queryset = MateriaLegislativa.objects.all()
-    filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('numero', 'ano', 'tipo', )
-
-
-class SessaoPlenariaViewSet(ListModelMixin,
-                            RetrieveModelMixin,
-                            GenericViewSet):
-
-    permission_classes = (AllowAny,)
-    serializer_class = SessaoPlenariaSerializer
-    queryset = SessaoPlenaria.objects.all()
-    filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('data_inicio', 'data_fim', 'interativa')
