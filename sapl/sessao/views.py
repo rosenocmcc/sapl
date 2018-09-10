@@ -27,9 +27,10 @@ from sapl.crud.base import (RP_DETAIL, RP_LIST, Crud, CrudAux,
                             MasterDetailCrud,
                             PermissionRequiredForAppCrudMixin, make_pagination)
 from sapl.materia.forms import filtra_tramitacao_status
-from sapl.materia.models import (Autoria, DocumentoAcessorio,
+from sapl.materia.models import (Autoria, DocumentoAcessorio, MateriaAssunto,
                                  TipoMateriaLegislativa, Tramitacao)
 from sapl.materia.views import MateriaLegislativaPesquisaView
+from sapl.norma.models import AssuntoNorma
 from sapl.parlamentares.models import (Filiacao, Legislatura, Mandato,
                                        Parlamentar, SessaoLegislativa)
 from sapl.sessao.apps import AppConfig
@@ -459,10 +460,32 @@ def recuperar_materia(request):
         materia = MateriaLegislativa.objects.get(tipo=tipo,
                                                  ano=ano,
                                                  numero=numero)
+        import ipdb; ipdb.set_trace()
+        assuntos_materia = []
+        relacao = MateriaAssunto.objects.filter(materia=materia)
+        assuntos_normas_list = AssuntoNorma.objects.all()
+        assuntos_norma = [x.assunto for x in assuntos_normas_list]
+        if relacao:
+            for i in relacao:
+                # assuntos_materia.append(i.assunto.assunto)
+                if i.assunto.assunto in assuntos_norma:
+                    assuntos_materia.append(assuntos_norma)
+
         response = JsonResponse({'ementa': materia.ementa,
+<<<<<<< Updated upstream
                                  'id': materia.id})
     except ObjectDoesNotExist:
         response = JsonResponse({'ementa': '', 'id': 0})
+=======
+                                 'id': materia.id,
+                                 'indexacao': materia.indexacao,
+                                 'assuntos_materia':assuntos_materia})
+    except ObjectDoesNotExist:
+        response = JsonResponse({'ementa': '',
+                                 'id': 0,
+                                 'indexacao':'',
+                                 'assuntos_materia':[]})
+>>>>>>> Stashed changes
 
     return response
 
