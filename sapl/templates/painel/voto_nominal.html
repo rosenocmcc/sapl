@@ -125,13 +125,50 @@
   var d = new Date();
   var n = d.toLocaleDateString();
   document.getElementById("date").innerHTML = n;
-
   $(window).on('beforeunload', function () {
             $("input[type=submit], input[type=button]").prop("disabled", "disabled");
      });
+ $(document).ready(function() {
+     console.log($("#voto"))
+     $("#voto").keydown(function(e){
+         console.log(e,e.which)
+         if (e.wich == 78) {
+               $("#voto").val() = "Nao";
+               document.location.reload(true);
+     }
+     if (e.keyCode == 83) {
+           $("#voto").val() = "Sim";
+           document.location.reload(true);
+ }
+})
+});
   $( "#votosim" ).mouseleave(function(){document.location.reload(true);});
   $( "#votonao" ).mouseleave(function(){document.location.reload(true);});
   $( "#votoabstencao" ).mouseleave(function(){document.location.reload(true);});
+              // $("#voto").bind("keydown", function(test) { //input type=id above
+              //   console.log(test,$("#votosim").val(),$("#votonao").val(),$("#voto").val())
+              //   if (test.keyCode == 78) {
+              //       $("#voto").val() = "Nao"
+              //       $("#votonao").val() = true
+              //     document.location.reload(true);
+              // }
+              //    else {
+              //        $("#voto").val() = "Abstencao"
+              //      document.location.reload(true);
+              //    }
+              //     // $.get("/voteup/", args).done(function(data) {
+              //     //   console.log("message: " + data);
+              //     //   location.reload();
+              //     // });
+              //   return false;
+
+                // if (e.keyCode == 40) {
+                //   var text = Nao;
+                //   var args = {'votonao':text};
+                //   document.location.reload(true);
+                // return false;
+                // }
+    //});
   $(document).ready(
     function(){
 
