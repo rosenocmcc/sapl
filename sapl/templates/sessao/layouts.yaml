@@ -22,7 +22,7 @@ TipoExpediente:
 
 RegistroVotacao:
   {% trans 'Votação Simbólica' %}:
-  - numero_votos_sim  numero_votos_nao  numero_abstencoes  nao_votou_FIXME
+  - numero_votos_sim  numero_votos_nao  numero_abstencoes numero_ausentes nao_votou_FIXME
   - votacao_branco_FIXME  ind_votacao_presidente_FIXME
   - tipo_resultado_votacao
   - observacao

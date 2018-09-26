@@ -1681,7 +1681,8 @@ class VotacaoView(SessaoPermissionMixin):
                 sessao_plenaria_id=self.object.id).count()
             qtde_votos = (int(request.POST['votos_sim']) +
                           int(request.POST['votos_nao']) +
-                          int(request.POST['abstencoes']))
+                          int(request.POST['abstencoes']) +
+                          int(request.POST['ausentes']))
 
             if (int(request.POST['voto_presidente']) == 0):
                 qtde_presentes -= 1
@@ -1695,6 +1696,7 @@ class VotacaoView(SessaoPermissionMixin):
                     votacao.numero_votos_sim = int(request.POST['votos_sim'])
                     votacao.numero_votos_nao = int(request.POST['votos_nao'])
                     votacao.numero_abstencoes = int(request.POST['abstencoes'])
+                    votacao.numero_ausentes = int(request.POST['ausentes'])
                     votacao.observacao = request.POST['observacao']
                     votacao.materia_id = materia_id
                     votacao.ordem_id = ordem_id
@@ -1846,7 +1848,9 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             votos_sim = 0
             votos_nao = 0
             abstencoes = 0
+            ausentes = 0
             nao_votou = 0
+            
 
             for votos in request.POST.getlist('voto_parlamentar'):
                 v = votos.split(':')
@@ -1859,6 +1863,8 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
                     votos_nao += 1
                 elif voto == 'Abstenção':
                     abstencoes += 1
+                elif voto == 'Ausentes':
+                    ausentes += 1
                 elif voto == 'Não Votou':
                     nao_votou += 1
 
@@ -1878,6 +1884,7 @@ class VotacaoNominalAbstract(SessaoPermissionMixin):
             votacao.numero_votos_sim = votos_sim
             votacao.numero_votos_nao = votos_nao
             votacao.numero_abstencoes = abstencoes
+            votacao.numero_ausentes = ausentes
             votacao.observacao = request.POST.get('observacao', None)
 
             votacao.materia_id = materia_votacao.materia.id
@@ -2035,7 +2042,7 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                        '&nbsp;', ' ', strip_tags(ementa))}
         context.update({'materia': materia})
 
-        votosSim = votosNao = abstencoes = naoRegistrados = 0
+        votosSim = votosNao = abstencoes = naoRegistrados = ausentes = 0
         for v in votos:
             if v.voto == 'Sim':
                 votosSim += 1
@@ -2043,11 +2050,13 @@ class VotacaoNominalEditAbstract(SessaoPermissionMixin):
                 votosNao += 1
             elif v.voto == 'Abstenção':
                 abstencoes += 1
+            elif v.voto == 'Ausentes':
+                ausentes += 1
             elif v.voto == 'Não Votou':
                 naoRegistrados += 1
 
         list_contagem = {'votosSim': votosSim, 'votosNao': votosNao, 'abstencoes': abstencoes,
-                         'naoRegistrados': naoRegistrados}
+                         'ausentes': ausentes, 'naoRegistrados': naoRegistrados}
 
         context.update({'contagem': list_contagem})
 
@@ -2229,7 +2238,8 @@ class VotacaoSimbolicaTransparenciaDetailView(TemplateView):
 
         registro_votacao = {'numero_votos_sim': votacao.numero_votos_sim,
                             'numero_votos_nao': votacao.numero_votos_nao,
-                            'numero_abstencoes': votacao.numero_abstencoes}
+                            'numero_abstencoes': votacao.numero_abstencoes,
+                            'numero_ausentes': votacao.numero_ausentes}
         context.update({'registro_votacao': registro_votacao})
 
         votacao_existente = {'observacao': sub(
@@ -2322,7 +2332,8 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
                 sessao_plenaria_id=self.object.id).count()
             qtde_votos = (int(request.POST['votos_sim']) +
                           int(request.POST['votos_nao']) +
-                          int(request.POST['abstencoes']))
+                          int(request.POST['abstencoes']) +
+                          int(request.POST['ausentes']))
 
             if (int(request.POST['voto_presidente']) == 0):
                 qtde_presentes -= 1
@@ -2336,6 +2347,7 @@ class VotacaoExpedienteView(SessaoPermissionMixin):
                     votacao.numero_votos_sim = int(request.POST['votos_sim'])
                     votacao.numero_votos_nao = int(request.POST['votos_nao'])
                     votacao.numero_abstencoes = int(request.POST['abstencoes'])
+                    votacao.numero_ausentes = int(request.POST['ausentes'])
                     votacao.observacao = request.POST['observacao']
                     votacao.materia_id = materia_id
                     votacao.expediente_id = expediente_id

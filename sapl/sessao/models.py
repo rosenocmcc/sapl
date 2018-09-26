@@ -425,6 +425,8 @@ class RegistroVotacao(models.Model):
     numero_votos_nao = models.PositiveIntegerField(verbose_name=_('Não'))
     numero_abstencoes = models.PositiveIntegerField(
         verbose_name=_('Abstenções'))
+    numero_ausentes = models.PositiveIntegerField(
+        verbose_name=_('Ausentes'))
     observacao = models.TextField(
         blank=True, verbose_name=_('Observações'))
 

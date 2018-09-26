@@ -416,6 +416,7 @@ class VotacaoForm(forms.Form):
     votos_sim = forms.CharField(label='Sim')
     votos_nao = forms.CharField(label='Não')
     abstencoes = forms.CharField(label='Abstenções')
+    ausentes = forms.CharField(label='Ausentes')
     total_votos = forms.CharField(required=False, label='total')
     resultado_votacao = forms.CharField(label='Resultado da Votação')
 

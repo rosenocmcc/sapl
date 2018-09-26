@@ -32,6 +32,7 @@
 		            <option value="Não Votou:{{parlamentar.0.id}}">Não Votou</option>
 		            <option value="Sim:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Sim' %} selected {% endif %}>Sim</option>
 		            <option value="Não:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Não' %} selected {% endif %}>Não</option>
+		            <option value="Ausente:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Ausente' %} selected {% endif %}>Ausente</option>
 		            <option value="Abstenção:{{parlamentar.0.id}}" {% if parlamentar.1 == 'Abstenção' %} selected {% endif %}>Abstenção</option>
 		          </select>
 		        </div>
@@ -76,6 +77,7 @@
                         var votos_sim = 0;
                         var votos_nao = 0;
                         var votos_abstencao = 0;
+                        var votos_ausentes = 0;
                         var nao_votou = 0;
                         $('[name=voto_parlamentar]').each(function() {
                           if (($(this).is(':hidden')) == false) {
@@ -89,6 +91,9 @@
                               case "Abst":
                                 votos_abstencao = votos_abstencao + 1;
                                 break;
+                              case "Ause":
+                                votos_ausentes = votos_ausentes + 1;
+                                break;
                               case "Não ":
                                 nao_votou = nao_votou + 1;
                                 break;
@@ -99,6 +104,7 @@
                   $("#soma_votos").empty();
                   $("#soma_votos").append("<div class='row'><div class='col-md-12'>Sim: " + votos_sim + "</div></div>");
                   $("#soma_votos").append("<div class='row'><div class='col-md-12'>Não: " + votos_nao + "</div></div>");
+                  $("#soma_votos").append("<div class='row'><div class='col-md-12'>Ausentes: " + votos_ausentes + "</div></div>");
                   $("#soma_votos").append("<div class='row'><div class='col-md-12'>Abstenções: " + votos_abstencao + "</div></div>");
                   $("#soma_votos").append("<div class='row'><div class='col-md-12'>Ainda não votaram: " + nao_votou + "</div></div>");
                         var t = setTimeout(function(){
