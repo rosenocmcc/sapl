@@ -1,4 +1,5 @@
 import logging
+
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
@@ -10,13 +11,12 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.viewsets import GenericViewSet
 
+from sapl.api.base.serializers import AutorChoiceSerializer, AutorSerializer
 from sapl.api.forms import (AutorChoiceFilterSet, AutoresPossiveisFilterSet,
                             AutorSearchForFieldFilterSet)
-from sapl.api.serializers import (AutorChoiceSerializer, AutorSerializer,
-                                  ChoiceSerializer,
-                                  MateriaLegislativaSerializer,
-                                  ModelChoiceSerializer,
-                                  SessaoPlenariaSerializer)
+from sapl.api.materia.views import MateriaLegislativaSerializer
+from sapl.api.serializers import ModelChoiceSerializer, ChoiceSerializer
+from sapl.api.sessao.serializers import SessaoPlenariaSerializer
 from sapl.base.models import Autor, TipoAutor
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria
