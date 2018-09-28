@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from django import apps
 from django.db.models.signals import post_save, post_delete
 from django.dispatch.dispatcher import receiver
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+
 
 _time_refresh_models = {}
 
@@ -19,7 +22,14 @@ def _get_registration_key(model):
 
 def time_refresh(model=None):
     def register(model):
-        _time_refresh_models[_get_registration_key(model)] = timezone.now()
+        _time_refresh_models[_get_registration_key(
+            model)] = datetime.now().isoformat(timespec='milliseconds')
+
+        from django.contrib.contenttypes.fields import GenericRelation
+        from reversion.models import Version
+        model.versions = GenericRelation(
+            Version, related_query_name="versions")
+
         return model
 
     if model is None:
@@ -33,4 +43,5 @@ def time_refresh_signal(sender, instance, **kwargs):
     refresh = _time_refresh_models.get(_get_registration_key(sender), None)
 
     if refresh:
-        _time_refresh_models[refresh] = timezone.now()
+        _time_refresh_models[_get_registration_key(
+            sender)] = datetime.now().isoformat(timespec='milliseconds')
