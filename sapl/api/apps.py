@@ -23,12 +23,7 @@ def _get_registration_key(model):
 def time_refresh(model=None):
     def register(model):
         _time_refresh_models[_get_registration_key(
-            model)] = datetime.now().isoformat(timespec='milliseconds')
-
-        from django.contrib.contenttypes.fields import GenericRelation
-        from reversion.models import Version
-        model.versions = GenericRelation(
-            Version, related_query_name="versions")
+            model)] = timezone.now().isoformat(timespec='milliseconds')[:-6]
 
         return model
 
@@ -44,4 +39,4 @@ def time_refresh_signal(sender, instance, **kwargs):
 
     if refresh:
         _time_refresh_models[_get_registration_key(
-            sender)] = datetime.now().isoformat(timespec='milliseconds')
+            sender)] = timezone.now().isoformat(timespec='milliseconds')[:-6]
