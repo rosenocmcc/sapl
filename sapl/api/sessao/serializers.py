@@ -127,10 +127,15 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
     sessao_legislativa = serializers.StringRelatedField(many=False)
     legislatura = serializers.StringRelatedField(many=False)
     tipo = serializers.StringRelatedField(many=False)
-    data_inicio = DateField(
-        format='%d/%m/%Y', input_formats=None)
-    data_fim = DateField(
-        format='%d/%m/%Y', input_formats=None)
 
     class Meta:
         model = SessaoPlenaria
+        fields = ('id',
+                  'sessao_legislativa',
+                  'legislatura',
+                  'tipo',
+                  'data_inicio',
+                  'data_fim',
+                  'hora_inicio',
+                  'hora_fim',
+                  'numero',)
