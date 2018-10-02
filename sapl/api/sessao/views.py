@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from datetime import datetime
 
 from django.db.models import Q
@@ -28,6 +29,14 @@ class SessaoPlenariaViewSet(ReadOnlyModelViewSet):
     queryset = SessaoPlenaria.objects.all().order_by(
         '-data_inicio', '-hora_inicio')
 
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+
+        if self.deletados:
+            response.data['deleted'] = self.deletados
+
+        return response
+
     def get_queryset(self):
         qs = super().get_queryset()
         opts = SessaoPlenaria._meta
@@ -57,11 +66,17 @@ class SessaoPlenariaViewSet(ReadOnlyModelViewSet):
                 vs = Version.objects.filter(q).order_by(
                     '-revision__date_created', '-object_id'
                 ).values_list('object_id', flat=True)
-                vs = set(vs)
+                vs = set(map(int, vs))
                 qs = qs.filter(id__in=vs)
+
+                qs_values = set(qs.values_list('id', flat=True))
+
+                self.deletados = vs - qs_values
+                print(self.deletados)
+
             elif tipo_update == '2':
                 """
-                    apesar de a data estar ser datetime e o campo data_inicio
+                    apesar de a data ser datetime e o campo data_inicio
                     ser DateField, devido a este fato, as partes de um dia
                     é descartada no filtro. 
                 """
