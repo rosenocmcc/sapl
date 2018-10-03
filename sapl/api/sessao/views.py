@@ -54,25 +54,33 @@ class SessaoPlenariaViewSet(ReadOnlyModelViewSet):
 
         if data_min or data_max:
             if tipo_update == 'sync':
-                q = Q(content_type__app_label=opts.app_label,
-                      content_type__model=opts.model_name)
+                q_model = Q(content_type__app_label=opts.app_label,
+                            content_type__model=opts.model_name)
 
+                q_data = Q()
                 if data_min:
-                    q &= Q(revision__date_created__gte=data_min)
+                    q_data &= Q(revision__date_created__gte=data_min)
 
                 if data_max:
-                    q &= Q(revision__date_created__lte=data_max)
+                    q_data &= Q(revision__date_created__lte=data_max)
 
-                vs = Version.objects.filter(q).order_by(
-                    '-revision__date_created', '-object_id'
-                ).values_list('object_id', flat=True)
-                vs = set(map(int, vs))
-                qs = qs.filter(id__in=vs)
+                vs = Version.objects.filter(q_model).order_by(
+                    '-revision__date_created', '-object_id')
 
+                vs_sync = vs.filter(q_data).values_list('object_id', flat=True)
+                vs_sync = set(map(int, vs_sync))
+
+                # com o código abaixo envia todos os deletados no período sel.
+                qs = qs.filter(id__in=vs_sync)
                 qs_values = set(qs.values_list('id', flat=True))
+                self.deletados = vs_sync - qs_values
 
-                self.deletados = vs - qs_values
-                print(self.deletados)
+                # com código abaixo envia todos os deletados
+                # qs_values = set(qs.values_list('id', flat=True))
+                # qs = qs.filter(id__in=vs_sync)
+                # vs = vs.values_list('object_id', flat=True)
+                # vs = set(map(int, vs))
+                # self.deletados = vs - qs_values
 
             elif tipo_update == 'get':
                 """
