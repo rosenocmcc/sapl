@@ -28,12 +28,12 @@ class SessaoPlenariaViewSet(ReadOnlyModelViewSet):
     serializer_class = SessaoPlenariaSerializer
     queryset = SessaoPlenaria.objects.all().order_by(
         '-data_inicio', '-hora_inicio')
+    deletados = None
 
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
 
-        if self.deletados:
-            response.data['deleted'] = self.deletados
+        response.data['deleted'] = self.deletados if self.deletados else []
 
         return response
 
@@ -53,7 +53,7 @@ class SessaoPlenariaViewSet(ReadOnlyModelViewSet):
             data_max = data_max.replace(tzinfo=utc)
 
         if data_min or data_max:
-            if tipo_update == '1':
+            if tipo_update == 'sync':
                 q = Q(content_type__app_label=opts.app_label,
                       content_type__model=opts.model_name)
 
@@ -74,7 +74,7 @@ class SessaoPlenariaViewSet(ReadOnlyModelViewSet):
                 self.deletados = vs - qs_values
                 print(self.deletados)
 
-            elif tipo_update == '2':
+            elif tipo_update == 'get':
                 """
                     apesar de a data ser datetime e o campo data_inicio
                     ser DateField, devido a este fato, as partes de um dia
