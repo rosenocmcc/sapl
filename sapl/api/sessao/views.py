@@ -22,24 +22,18 @@ class SessaoPlenariaOldViewSet(ReadOnlyModelViewSet):
     filter_fields = ('data_inicio', 'data_fim', 'interativa')
 
 
-class SessaoPlenariaViewSet(ReadOnlyModelViewSet):
-
+class TimeRefreshMobileViewSet(ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
-    serializer_class = SessaoPlenariaSerializer
-    queryset = SessaoPlenaria.objects.all().order_by(
-        '-data_inicio', '-hora_inicio')
     deletados = None
 
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
-
         response.data['deleted'] = self.deletados if self.deletados else []
-
         return response
 
     def get_queryset(self):
         qs = super().get_queryset()
-        opts = SessaoPlenaria._meta
+        opts = qs.model._meta
 
         data_min = self.request.query_params.get('data_min', None)
         data_max = self.request.query_params.get('data_max', None)
@@ -88,12 +82,22 @@ class SessaoPlenariaViewSet(ReadOnlyModelViewSet):
                     ser DateField, devido a este fato, as partes de um dia
                     é descartada no filtro. 
                 """
-                q = Q()
+                params = {}
                 if data_min:
-                    q &= Q(data_inicio__gte=data_min)
+                    params['{}__gte'.format(
+                        self.field_to_filter_date)] = data_min
                 if data_max:
-                    q &= Q(data_inicio__lte=data_max)
+                    params['{}__lte'.format(
+                        self.field_to_filter_date)] = data_max
 
-                qs = qs.filter(q)
+                qs = qs.filter(**params)
 
         return qs
+
+
+class SessaoPlenariaViewSet(TimeRefreshMobileViewSet):
+
+    serializer_class = SessaoPlenariaSerializer
+    queryset = SessaoPlenaria.objects.all().order_by(
+        '-data_inicio', '-hora_inicio')
+    field_to_filter_date = 'data_inicio'
