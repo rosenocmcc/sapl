@@ -2,7 +2,8 @@ from rest_framework import serializers
 from rest_framework.fields import DateField
 
 from sapl.base.models import CasaLegislativa
-from sapl.sessao.models import SessaoPlenaria, OrdemDia
+from sapl.materia.models import MateriaLegislativa
+from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria
 
 
 class SessaoPlenariaOldSerializer(serializers.ModelSerializer):
@@ -139,3 +140,16 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
                   'hora_inicio',
                   'hora_fim',
                   'numero',)
+
+
+class ExpedienteMateriaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ExpedienteMateria
+        fields = '__all__'
+
+
+class OrdemDiaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrdemDia
+        fields = '__all__'
