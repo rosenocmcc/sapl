@@ -150,6 +150,20 @@ class ExpedienteMateriaSerializer(serializers.ModelSerializer):
 
 
 class OrdemDiaSerializer(serializers.ModelSerializer):
+
+    class MateriaLegislativaSerializer(serializers.ModelSerializer):
+        tipo = serializers.StringRelatedField(many=False)
+        tipo_sigla = serializers.SerializerMethodField()
+
+        class Meta:
+            model = MateriaLegislativa
+            fields = '__all__'
+
+        def get_tipo_sigla(self, obj):
+            return obj.tipo.sigla
+
+    materia = MateriaLegislativaSerializer()
+
     class Meta:
         model = OrdemDia
         fields = '__all__'
