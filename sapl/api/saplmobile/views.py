@@ -116,7 +116,7 @@ class SessaoPlenariaViewSet(TimeRefreshMobileMixin):
     def detail(self, model, serializer_class, **kwargs):
         qs = model.objects.filter(
             sessao_plenaria_id=kwargs['pk']).order_by('numero_ordem')
-        self.queryset_refresh(
+        qs = self.queryset_refresh(
             qs, field_to_filter_date='sessao_plenaria__data_inicio')
 
         page = self.paginate_queryset(qs)
