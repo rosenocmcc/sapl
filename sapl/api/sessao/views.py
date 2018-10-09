@@ -27,26 +27,24 @@ class SessaoPlenariaViewSet(TimeRefreshMobileViewSet):
         '-data_inicio', '-hora_inicio')
     field_to_filter_date = 'data_inicio'
 
-    @detail_route()
-    def expediente_materia(self, request, *args, **kwargs):
-        qs = ExpedienteMateria.objects.filter(
+    def detail(self, model, serializer_class, **kwargs):
+        qs = model.objects.filter(
             sessao_plenaria_id=kwargs['pk']).order_by('numero_ordem')
+        self.queryset_refresh(
+            qs, field_to_filter_date='sessao_plenaria__data_inicio')
+
         page = self.paginate_queryset(qs)
         if page is not None:
-            serializer = ExpedienteMateriaSerializer(page, many=True)
+            serializer = serializer_class(page, many=True)
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
+
+    @detail_route()
+    def expediente_materia(self, request, *args, **kwargs):
+        return self.detail(ExpedienteMateria, **kwargs)
 
     @detail_route()
     def ordem_dia(self, request, *args, **kwargs):
-        qs = OrdemDia.objects.filter(
-            sessao_plenaria_id=kwargs['pk']).order_by('numero_ordem')
-        page = self.paginate_queryset(qs)
-        if page is not None:
-            serializer = OrdemDiaSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(page, many=True)
-        return Response(serializer.data)
+        return self.detail(OrdemDia, OrdemDiaSerializer, **kwargs)

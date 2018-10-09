@@ -297,12 +297,19 @@ class TimeRefreshMobileViewSet(ReadOnlyModelViewSet):
         return response
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        return self.queryset_refresh()
+
+    def queryset_refresh(self, queryset=None, **kwargs):
+
+        qs = queryset if queryset else super().get_queryset()
         opts = qs.model._meta
 
-        data_min = self.request.query_params.get('data_min', None)
-        data_max = self.request.query_params.get('data_max', None)
-        tipo_update = self.request.query_params.get('tipo_update', '1')
+        data_min = self.request.query_params.get(
+            'data_min', kwargs.get('data_min', None))
+        data_max = self.request.query_params.get(
+            'data_max', kwargs.get('data_max', None))
+        tipo_update = self.request.query_params.get(
+            'tipo_update', kwargs.get('tipo_update', 'get'))
 
         if data_min:
             data_min = datetime.strptime(data_min, '%Y-%m-%dT%H:%M:%S.%f')
@@ -343,17 +350,19 @@ class TimeRefreshMobileViewSet(ReadOnlyModelViewSet):
 
             elif tipo_update == 'get':
                 """
-                    apesar de a data ser datetime e o campo data_inicio
-                    ser DateField, devido a este fato, as partes de um dia
-                    é descartada no filtro. 
+                    se a data for datetime e o campo DateField
+                    as partes de um dia são descartadas no filtro. 
                 """
                 params = {}
+                field_to_filter_date = kwargs.get(
+                    'field_to_filter_date', self.field_to_filter_date)
+
                 if data_min:
                     params['{}__gte'.format(
-                        self.field_to_filter_date)] = data_min
+                        field_to_filter_date)] = data_min
                 if data_max:
                     params['{}__lte'.format(
-                        self.field_to_filter_date)] = data_max
+                        field_to_filter_date)] = data_max
 
                 qs = qs.filter(**params)
 
