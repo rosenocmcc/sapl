@@ -1,6 +1,12 @@
+from datetime import datetime
+import os
+
+from django.utils.timezone import make_aware
 from rest_framework import serializers
+
 from sapl.materia.models import MateriaLegislativa
-from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria
+from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria,\
+    RegistroVotacao
 
 
 class SessaoPlenariaSerializer(serializers.ModelSerializer):
@@ -21,28 +27,41 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
                   'numero',)
 
 
-class ExpedienteMateriaSerializer(serializers.ModelSerializer):
+class MateriaLegislativaSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ExpedienteMateria
-        fields = '__all__'
+
+        fields = ('id',
+                  'tipo',
+                  'tipo_sigla',
+                  'numero',
+                  'ano',
+                  'numero_protocolo',
+                  'data_apresentacao',
+                  'ementa',
+                  'texto_original',
+                  'autores',
+                  )
 
 
-class OrdemDiaSerializer(serializers.ModelSerializer):
-
-    class MateriaLegislativaSerializer(serializers.ModelSerializer):
-        tipo = serializers.StringRelatedField(many=False)
-        tipo_sigla = serializers.SerializerMethodField()
-
-        class Meta:
-            model = MateriaLegislativa
-            fields = '__all__'
-
-        def get_tipo_sigla(self, obj):
-            return obj.tipo.sigla
-
+class SessaoSerializerMixin(serializers.ModelSerializer):
     materia = MateriaLegislativaSerializer()
 
     class Meta:
+        fields = ('id',
+                  'materia',
+                  'observacao',
+                  'numero_ordem',
+                  'resultado',
+                  'tipo_votacao',
+                  'sessao_plenaria',)
+
+
+class ExpedienteMateriaSerializer(SessaoSerializerMixin):
+    class Meta(SessaoSerializerMixin.Meta):
+        model = ExpedienteMateria
+
+
+class OrdemDiaSerializer(SessaoSerializerMixin):
+    class Meta(SessaoSerializerMixin.Meta):
         model = OrdemDia
-        fields = '__all__'

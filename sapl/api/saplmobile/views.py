@@ -24,7 +24,7 @@ class TimeRefreshDatabaseView(APIView):
         return Response(_time_refresh_models)
 
 
-class TimeRefreshMobileViewSet(ReadOnlyModelViewSet):
+class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
     deletados = None
 
@@ -106,7 +106,7 @@ class TimeRefreshMobileViewSet(ReadOnlyModelViewSet):
         return qs
 
 
-class SessaoPlenariaViewSet(TimeRefreshMobileViewSet):
+class SessaoPlenariaViewSet(TimeRefreshMobileMixin):
 
     serializer_class = SessaoPlenariaSerializer
     queryset = SessaoPlenaria.objects.all().order_by(
