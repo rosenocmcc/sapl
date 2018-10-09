@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django import apps
 from django.db.models.signals import post_save, post_delete
 from django.dispatch.dispatcher import receiver

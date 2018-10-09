@@ -2,10 +2,10 @@ from django.conf import settings
 from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
-import sapl.api.base.urls
-import sapl.api.materia.urls
-import sapl.api.sessao.urls
-from sapl.api.views import ModelChoiceView, TimeRefreshDatabaseView
+from sapl.api.saplmobile import urls as saplmobile_urls
+from sapl.api.views import (AutoresPossiveisListView, AutoresProvaveisListView,
+                            AutorListView, MateriaLegislativaViewSet,
+                            ModelChoiceView, SessaoPlenariaViewSet)
 
 from .apps import AppConfig
 
@@ -14,16 +14,22 @@ app_name = AppConfig.name
 
 
 router = DefaultRouter()
-router.registry += sapl.api.materia.urls.router.registry + \
-    sapl.api.sessao.urls.router.registry
-
+router.register(r'materia', MateriaLegislativaViewSet)
+router.register(r'sessao-plenaria', SessaoPlenariaViewSet)
 urlpatterns_router = router.urls
 
 urlpatterns_api = [
+
+    url(r'^autor/provaveis',
+        AutoresProvaveisListView.as_view(), name='autores_provaveis_list'),
+    url(r'^autor/possiveis',
+        AutoresPossiveisListView.as_view(), name='autores_possiveis_list'),
+
+    url(r'^autor', AutorListView.as_view(), name='autor_list'),
+
     url(r'^model/(?P<content_type>\d+)/(?P<pk>\d*)$',
         ModelChoiceView.as_view(), name='model_list'),
-    url(r'time_refresh$',
-        TimeRefreshDatabaseView.as_view(), name="time_refresh")
+
 ]
 
 if settings.DEBUG:
@@ -31,9 +37,8 @@ if settings.DEBUG:
         url(r'^docs', include('rest_framework_docs.urls')), ]
 
 urlpatterns = [
-    url(r'^api/', include(sapl.api.materia.urls)),
-    url(r'^api/', include(sapl.api.sessao.urls)),
-    url(r'^api/', include(sapl.api.base.urls)),
+    url(r'^api/', include(saplmobile_urls)),
     url(r'^api/', include(urlpatterns_api)),
+
     url(r'^api/', include(urlpatterns_router))
 ]

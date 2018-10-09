@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.forms.fields import CharField, MultiValueField
 from django.forms.widgets import MultiWidget, TextInput
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from django_filters.filters import MethodFilter, ModelChoiceFilter, DateFilter
 from rest_framework import serializers
 from rest_framework.compat import django_filters
@@ -137,7 +138,6 @@ class AutoresPossiveisFilterSet(FilterSet):
         return queryset
 
     def filter_tipo(self, queryset, value):
-
         try:
             self.logger.debug(
                 "Tentando obter TipoAutor correspondente à pk {}.".format(value))
