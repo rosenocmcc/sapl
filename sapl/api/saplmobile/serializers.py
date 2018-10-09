@@ -44,8 +44,16 @@ class MateriaLegislativaSerializer(serializers.ModelSerializer):
                   )
 
 
+class RegistroVotacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegistroVotacao
+        fields = '__all__'
+
+
 class SessaoSerializerMixin(serializers.ModelSerializer):
     materia = MateriaLegislativaSerializer()
+    votacao = RegistroVotacaoSerializer(
+        many=True, source='registrovotacao_set')
 
     class Meta:
         fields = ('id',
@@ -54,7 +62,8 @@ class SessaoSerializerMixin(serializers.ModelSerializer):
                   'numero_ordem',
                   'resultado',
                   'tipo_votacao',
-                  'sessao_plenaria',)
+                  'sessao_plenaria',
+                  'votacao')
 
 
 class ExpedienteMateriaSerializer(SessaoSerializerMixin):
