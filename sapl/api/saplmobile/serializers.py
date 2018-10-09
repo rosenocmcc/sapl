@@ -27,10 +27,26 @@ class SessaoPlenariaSerializer(serializers.ModelSerializer):
                   'numero',)
 
 
-class MateriaLegislativaSerializer(serializers.ModelSerializer):
+class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
+    tipo = serializers.StringRelatedField(many=False)
+    tipo_sigla = serializers.SerializerMethodField()
+    file_date_updated = serializers.SerializerMethodField()
+
+    def get_tipo_sigla(self, obj):
+        return obj.tipo.sigla
+
+    def get_file_date_updated(self, obj):
+        file = obj.texto_original
+        try:
+            lastmodified = os.stat(file.path).st_mtime
+            return make_aware(
+                datetime.utcfromtimestamp(lastmodified)
+            ).isoformat(timespec='milliseconds')[:-6]
+        except Exception as e:
+            return None
 
     class Meta:
-
+        model = MateriaLegislativa
         fields = ('id',
                   'tipo',
                   'tipo_sigla',
@@ -41,6 +57,29 @@ class MateriaLegislativaSerializer(serializers.ModelSerializer):
                   'ementa',
                   'texto_original',
                   'autores',
+                  'file_date_updated'
+                  )
+
+
+class MateriaLegislativaSerializer(MateriaLegislativaSerializerMixin):
+    anexadas = MateriaLegislativaSerializerMixin(many=True)
+    anexo_de = MateriaLegislativaSerializerMixin(many=True)
+
+    class Meta(MateriaLegislativaSerializerMixin.Meta):
+
+        fields = ('id',
+                  'tipo',
+                  'tipo_sigla',
+                  'numero',
+                  'ano',
+                  'numero_protocolo',
+                  'data_apresentacao',
+                  'ementa',
+                  'texto_original',
+                  'anexadas',
+                  'anexo_de',
+                  'autores',
+                  'file_date_updated'
                   )
 
 
