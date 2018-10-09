@@ -12,7 +12,9 @@ from reversion.models import Version
 
 from sapl.api.apps import _time_refresh_models
 from sapl.api.saplmobile.serializers import SessaoPlenariaSerializer,\
-    OrdemDiaSerializer, ExpedienteMateriaSerializer
+    OrdemDiaSerializer, ExpedienteMateriaSerializer,\
+    MateriaLegislativaSerializer
+from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria, ExpedienteMateria, OrdemDia
 
 
@@ -138,3 +140,8 @@ class SessaoPlenariaViewSet(TimeRefreshMobileMixin):
         return self.detail(OrdemDia,
                            OrdemDiaSerializer,
                            **kwargs)
+
+
+class MateriaLegislativaViewSet(TimeRefreshMobileMixin):
+    serializer_class = MateriaLegislativaSerializer
+    queryset = MateriaLegislativa.objects.all().order_by('-data_apresentacao')
