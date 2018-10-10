@@ -72,6 +72,7 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
     tipo_sigla = serializers.SerializerMethodField()
     file_date_updated = serializers.SerializerMethodField()
     autores = AutorSerializer(many=True)
+    texto_original = serializers.SerializerMethodField()
 
     class Meta:
         model = MateriaLegislativa
@@ -87,6 +88,11 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
                   'autores',
                   'file_date_updated'
                   )
+
+    def get_texto_original(self, obj):
+        if obj.texto_original:
+            return obj.texto_original.url
+        return None
 
     def get_tipo_sigla(self, obj):
         return obj.tipo.sigla
