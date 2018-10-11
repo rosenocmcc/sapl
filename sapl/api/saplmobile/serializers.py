@@ -4,17 +4,23 @@ import os
 from django.utils.timezone import make_aware
 from image_cropping.utils import get_backend
 from rest_framework import serializers
+from rest_framework.relations import RelatedField, StringRelatedField
 
 from sapl.base.models import Autor
-from sapl.materia.models import MateriaLegislativa, Autoria
+from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria,\
     RegistroVotacao
 
 
+class IntRelatedField(StringRelatedField):
+    def to_representation(self, value):
+        return int(value)
+
+
 class SessaoPlenariaSerializer(serializers.ModelSerializer):
-    sessao_legislativa = serializers.StringRelatedField(many=False)
-    legislatura = serializers.StringRelatedField(many=False)
-    tipo = serializers.StringRelatedField(many=False)
+    sessao_legislativa = IntRelatedField(source="sessao_legislativa.numero")
+    legislatura = IntRelatedField(source="legislatura.numero")
+    tipo = serializers.StringRelatedField()
 
     class Meta:
         model = SessaoPlenaria

@@ -105,13 +105,12 @@ class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
 
                 qs = qs.filter(**params)
 
-                if tipo_update == 'first_items':
-                    qs = qs[:self.paginator.page_size]
-                elif tipo_update == 'last_items':
-                    qs = qs[self.paginator.page_size * (-1):]
-        else:
-            if tipo_update == 'get_initial':
-                qs = qs[:self.paginator.page_size]
+        if tipo_update == 'first_items':
+            qs = qs[:self.paginator.page_size]
+        elif tipo_update == 'last_items':
+            qs = qs[self.paginator.page_size * (-1):]
+        elif tipo_update == 'get_initial':
+            qs = qs[:self.paginator.page_size]
 
         return qs
 
