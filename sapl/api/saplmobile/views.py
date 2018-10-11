@@ -87,7 +87,7 @@ class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
                 # vs = set(map(int, vs))
                 # self.deletados = vs - qs_values
 
-            elif tipo_update == 'get':
+            elif tipo_update in ('get', 'last_items', 'first_items'):
                 """
                     se a data for datetime e o campo DateField
                     as partes de um dia são descartadas no filtro. 
@@ -104,6 +104,14 @@ class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
                         field_to_filter_date)] = data_max
 
                 qs = qs.filter(**params)
+
+                if tipo_update == 'first_items':
+                    qs = qs[:self.paginator.page_size]
+                elif tipo_update == 'last_items':
+                    qs = qs[self.paginator.page_size * (-1):]
+        else:
+            if tipo_update == 'get_initial':
+                qs = qs[:self.paginator.page_size]
 
         return qs
 
