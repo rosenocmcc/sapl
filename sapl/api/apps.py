@@ -17,7 +17,7 @@ def __time_refresh_generate():
     for app in apps_sapl:
         for model in app.get_models():
             result[_get_registration_key(model)] = timezone.now(
-            ).isoformat(timespec='milliseconds')[:-6]
+            )
 
     return result
 
@@ -40,4 +40,4 @@ def time_refresh_signal(sender, instance, **kwargs):
 
     if refresh:
         time_refresh_models[_get_registration_key(
-            sender)] = timezone.now().isoformat(timespec='milliseconds')[:-6]
+            sender)] = timezone.now()
