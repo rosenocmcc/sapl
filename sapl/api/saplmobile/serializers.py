@@ -44,19 +44,22 @@ class AutorSerializer(serializers.ModelSerializer):
         fields = ('id', 'nome', 'fotografia', 'file_date_updated')
 
     def get_fotografia(self, obj):
-        if obj.autor_related:
-            if hasattr(obj.autor_related, 'fotografia'):
-                thumbnail_url = get_backend().get_thumbnail_url(
-                    obj.autor_related.fotografia,
-                    {
-                        'size': (128, 128),
-                        'box':  obj.autor_related.cropping,
-                        'crop': True,
-                        'detail': True,
-                    }
-                )
+        try:
+            if obj.autor_related:
+                if hasattr(obj.autor_related, 'fotografia'):
+                    thumbnail_url = get_backend().get_thumbnail_url(
+                        obj.autor_related.fotografia,
+                        {
+                            'size': (128, 128),
+                            'box':  obj.autor_related.cropping,
+                            'crop': True,
+                            'detail': True,
+                        }
+                    )
 
-                return thumbnail_url
+                    return thumbnail_url
+        except:
+            return ''
         return ''
 
     def get_file_date_updated(self, obj):

@@ -13,7 +13,8 @@ from reversion.models import Version
 from sapl.api.apps import time_refresh_models
 from sapl.api.saplmobile.serializers import SessaoPlenariaSerializer,\
     OrdemDiaSerializer, ExpedienteMateriaSerializer,\
-    MateriaLegislativaSerializer
+    MateriaLegislativaSerializer, AutorSerializer
+from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
 from sapl.sessao.models import SessaoPlenaria, ExpedienteMateria, OrdemDia
 
@@ -113,12 +114,13 @@ class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
                 field_to_filter_date = kwargs.get(
                     'field_to_filter_date', self.field_to_filter_date)
 
-                if data_min:
-                    params['{}__gte'.format(
-                        field_to_filter_date)] = data_min
-                if data_max:
-                    params['{}__lte'.format(
-                        field_to_filter_date)] = data_max
+                if field_to_filter_date:
+                    if data_min:
+                        params['{}__gte'.format(
+                            field_to_filter_date)] = data_min
+                    if data_max:
+                        params['{}__lte'.format(
+                            field_to_filter_date)] = data_max
 
                 qs = qs.filter(**params)
 
@@ -170,3 +172,9 @@ class MateriaLegislativaViewSet(TimeRefreshMobileMixin):
     serializer_class = MateriaLegislativaSerializer
     queryset = MateriaLegislativa.objects.all().order_by('-data_apresentacao')
     field_to_filter_date = 'data_apresentacao'
+
+
+class AutorViewSet(TimeRefreshMobileMixin):
+    serializer_class = AutorSerializer
+    queryset = Autor.objects.all()
+    field_to_filter_date = None

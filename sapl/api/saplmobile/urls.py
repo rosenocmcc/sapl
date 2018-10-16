@@ -1,7 +1,7 @@
 from django.conf.urls import url, include
 from rest_framework.routers import SimpleRouter
 from sapl.api.saplmobile.views import SessaoPlenariaViewSet,\
-    TimeRefreshDatabaseView, MateriaLegislativaViewSet
+    TimeRefreshDatabaseView, MateriaLegislativaViewSet, AutorViewSet
 
 # Não adicione app_name
 # app_name = AppConfig.name
@@ -9,6 +9,7 @@ from sapl.api.saplmobile.views import SessaoPlenariaViewSet,\
 router = SimpleRouter()
 router.register(r'sessao-plenaria', SessaoPlenariaViewSet)
 router.register(r'materia-legislativa', MateriaLegislativaViewSet)
+router.register(r'autor', AutorViewSet)
 
 urlpatterns_router = router.urls
 
