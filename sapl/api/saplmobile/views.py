@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from reversion.models import Version
 
-from sapl.api.apps import _time_refresh_models
+from sapl.api.apps import time_refresh_models
 from sapl.api.saplmobile.serializers import SessaoPlenariaSerializer,\
     OrdemDiaSerializer, ExpedienteMateriaSerializer,\
     MateriaLegislativaSerializer
@@ -23,7 +23,7 @@ class TimeRefreshDatabaseView(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
-        return Response(_time_refresh_models)
+        return Response(time_refresh_models)
 
 
 class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
@@ -152,3 +152,4 @@ class SessaoPlenariaViewSet(TimeRefreshMobileMixin):
 class MateriaLegislativaViewSet(TimeRefreshMobileMixin):
     serializer_class = MateriaLegislativaSerializer
     queryset = MateriaLegislativa.objects.all().order_by('-data_apresentacao')
+    field_to_filter_date = 'data_apresentacao'

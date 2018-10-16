@@ -11,7 +11,6 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 import reversion
 
-from sapl.api.apps import time_refresh
 from sapl.base.models import SEQUENCIA_NUMERACAO, Autor
 from sapl.comissoes.models import Comissao
 from sapl.compilacao.models import (PerfilEstruturalTextoArticulado,
@@ -140,7 +139,6 @@ def anexo_upload_path(instance, filename):
     return texto_upload_path(instance, filename, subpath=instance.materia.ano)
 
 
-@time_refresh
 @reversion.register()
 class MateriaLegislativa(models.Model):
 
