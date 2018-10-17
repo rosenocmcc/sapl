@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 
 from django.utils.timezone import make_aware
+from easy_thumbnails.templatetags.thumbnail import thumbnail
 from image_cropping.utils import get_backend
 from rest_framework import serializers
 from rest_framework.relations import RelatedField, StringRelatedField
@@ -67,10 +68,21 @@ class AutorSerializer(serializers.ModelSerializer):
             if hasattr(obj.autor_related, 'fotografia'):
                 file = obj.autor_related.fotografia
                 try:
-                    lastmodified = os.stat(file.path).st_mtime
-                    return make_aware(
-                        datetime.utcfromtimestamp(lastmodified)
-                    ).isoformat(timespec='milliseconds')[:-6]
+                    thumbnail_url = get_backend().get_thumbnail_url(
+                        obj.autor_related.fotografia,
+                        {
+                            'size': (128, 128),
+                            'box':  obj.autor_related.cropping,
+                            'crop': True,
+                            'detail': True,
+                        }
+                    )
+                    path = file.path.split("/")
+                    path[-1] = thumbnail_url.split("/")[-1]
+                    path = "/".join(path)
+
+                    lastmodified = os.stat(path).st_mtime
+                    return make_aware(datetime.utcfromtimestamp(lastmodified)).isoformat(timespec='milliseconds')[:-6]
                 except:
                     return None
         return None
@@ -101,7 +113,7 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
     def get_texto_original(self, obj):
         if obj.texto_original:
             return obj.texto_original.url
-        return None
+        return ''
 
     def get_tipo_sigla(self, obj):
         return obj.tipo.sigla

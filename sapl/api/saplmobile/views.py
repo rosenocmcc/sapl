@@ -24,8 +24,8 @@ class TimeRefreshDatabaseView(APIView):
     permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
-        data = self.request.query_params.get('date', None)
-        times = time_refresh_models
+        data = request.query_params.get('date', None)
+        times = time_refresh_models()
         if data:
             data = datetime.strptime(data, '%Y-%m-%dT%H:%M:%S.%f')
             data = data.replace(tzinfo=utc)
@@ -38,6 +38,14 @@ class TimeRefreshDatabaseView(APIView):
                         lambda i, d=data: i[1] > d,
                         times.items()
                     )
+                )
+            )
+        else:
+            times = dict(
+                map(
+                    lambda item: (item[0], item[1].isoformat(
+                        timespec='milliseconds')[:-6]),
+                    times.items()
                 )
             )
 

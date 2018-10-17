@@ -22,7 +22,18 @@ def __time_refresh_generate():
     return result
 
 
-time_refresh_models = {}
+_time_refresh_models = {}
+
+
+def time_refresh_models():
+    if not _time_refresh_models:
+        _time_refresh_models.update(__time_refresh_generate())
+    return _time_refresh_models
+
+
+_time_refresh_reactive_models = {
+    'parlamentares:parlamentar': ['base:autor']
+}
 
 
 class AppConfig(apps.AppConfig):
@@ -33,11 +44,14 @@ class AppConfig(apps.AppConfig):
 
 @receiver([post_save, post_delete])
 def time_refresh_signal(sender, instance, **kwargs):
-    if not time_refresh_models:
-        time_refresh_models.update(__time_refresh_generate())
+    if not _time_refresh_models:
+        _time_refresh_models.update(__time_refresh_generate())
 
-    refresh = time_refresh_models.get(_get_registration_key(sender), None)
+    chave = _get_registration_key(sender)
+    refresh = _time_refresh_models.get(chave, None)
 
     if refresh:
-        time_refresh_models[_get_registration_key(
-            sender)] = timezone.now()
+        _time_refresh_models[chave] = timezone.now()
+
+    for reactive_model in _time_refresh_reactive_models.get(chave, []):
+        _time_refresh_models[reactive_model] = _time_refresh_models[chave]

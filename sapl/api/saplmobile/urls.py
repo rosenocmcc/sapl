@@ -7,8 +7,8 @@ from sapl.api.saplmobile.views import SessaoPlenariaViewSet,\
 # app_name = AppConfig.name
 
 router = SimpleRouter()
-router.register(r'sessao-plenaria', SessaoPlenariaViewSet)
-router.register(r'materia-legislativa', MateriaLegislativaViewSet)
+router.register(r'sessaoplenaria', SessaoPlenariaViewSet)
+router.register(r'materialegislativa', MateriaLegislativaViewSet)
 router.register(r'autor', AutorViewSet)
 
 urlpatterns_router = router.urls
