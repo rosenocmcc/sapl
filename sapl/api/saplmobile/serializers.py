@@ -185,6 +185,6 @@ class ExpedienteMateriaSerializer(SessaoSerializerMixin):
         model = ExpedienteMateria
 
 
-class OrdemDiaSerializer(SessaoSerializerMixin):
+class OrdemDiaDiaDiaSerializer(SessaoSerializerMixin):
     class Meta(SessaoSerializerMixin.Meta):
         model = OrdemDia

@@ -2,8 +2,10 @@
 from datetime import datetime
 
 from django.db.models import Q
+from django.utils.decorators import classonlymethod
 from django.utils.timezone import utc
-from rest_framework.decorators import detail_route, list_route
+from rest_framework import serializers as rest_serializers
+from rest_framework.decorators import list_route
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,8 +14,9 @@ from reversion.models import Version
 
 from sapl.api.apps import time_refresh_models
 from sapl.api.saplmobile.serializers import SessaoPlenariaSerializer,\
-    OrdemDiaSerializer, ExpedienteMateriaSerializer,\
-    MateriaLegislativaSerializer, AutorSerializer, AutorParlamentarSerializer
+    ExpedienteMateriaSerializer,\
+    MateriaLegislativaSerializer, AutorSerializer, AutorParlamentarSerializer,\
+    OrdemDiaDiaDiaSerializer
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
 from sapl.parlamentares.models import Parlamentar
@@ -59,7 +62,10 @@ class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
 
     def dispatch(self, request, *args, **kwargs):
         response = super().dispatch(request, *args, **kwargs)
-        response.data['deleted'] = self.deletados if self.deletados else []
+
+        if 'pagination' in response.data:
+            response.data['deleted'] = self.deletados if self.deletados and \
+                response.data['pagination']['page'] == 1 else []
         return response
 
     def get_queryset(self):
@@ -126,10 +132,10 @@ class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
                 if field_to_filter_date:
                     if data_min:
                         params['{}__gte'.format(
-                            field_to_filter_date)] = data_min
+                            field_to_filter_date[0])] = data_min
                     if data_max:
                         params['{}__lte'.format(
-                            field_to_filter_date)] = data_max
+                            field_to_filter_date[0])] = data_max
 
                 qs = qs.filter(**params)
 
@@ -142,51 +148,99 @@ class TimeRefreshMobileMixin(ReadOnlyModelViewSet):
 
         return qs
 
+    @classonlymethod
+    def build_class(cls, set_description):
+        import inspect
+        from sapl.api.saplmobile import serializers
+        serializers_classes = inspect.getmembers(serializers)
+        serializers_classes = {i[0]: i[1] for i in filter(
+            lambda x: x[0].endswith('Serializer'),
+            serializers_classes
+        )}
 
-class SessaoPlenariaViewSet(TimeRefreshMobileMixin):
+        built_sets = {}
 
-    serializer_class = SessaoPlenariaSerializer
-    queryset = SessaoPlenaria.objects.all().order_by(
-        '-data_inicio', '-hora_inicio')
-    field_to_filter_date = 'data_inicio'
+        def build(_model, _field_to_filter_date=None,
+                  _fields='__all__', _serializer_class=None):
+            """
+                Se _serializer_class not is None e não existe um serializer para
+                o model, a função build cria um ModelSerializer com o conteúdo
+                de _fields para o _model, porém, com fields não customizaveis
+            """
 
-    def detail(self, model, serializer_class, **kwargs):
-        qs = model.objects.filter(
-            sessao_plenaria_id=kwargs['pk']).order_by('numero_ordem')
-        qs = self.queryset_refresh(
-            qs, field_to_filter_date='sessao_plenaria__data_inicio')
+            if not _serializer_class:
+                ser_name = '%sSerializer' % _model._meta.object_name
 
-        page = self.paginate_queryset(qs)
-        if page is not None:
-            serializer = serializer_class(page, many=True)
-            return self.get_paginated_response(serializer.data)
+                _serializer_class = serializers_classes.get(
+                    ser_name, _serializer_class)
 
-        serializer = self.get_serializer(page, many=True)
-        return Response(serializer.data)
+            def create_class():
+                class ModelSerializer(rest_serializers.ModelSerializer):
+                    class Meta:
+                        model = _model
+                        fields = _fields
 
-    @detail_route()
-    def expediente_materia(self, request, *args, **kwargs):
-        return self.detail(ExpedienteMateria,
-                           ExpedienteMateriaSerializer,
-                           **kwargs)
+                class ModelTimeRefreshViewSet(cls):
+                    queryset = _model.objects.all() \
+                        if not _field_to_filter_date else \
+                        _model.objects.order_by(
+                            *list(
+                                map(
+                                    lambda x: '-%s' % x,
+                                    _field_to_filter_date
+                                )
+                            )
+                    )
+                    field_to_filter_date = _field_to_filter_date
+                    serializer_class = _serializer_class \
+                        if _serializer_class else ModelSerializer
 
-    @detail_route()
-    def ordem_dia(self, request, *args, **kwargs):
-        return self.detail(OrdemDia,
-                           OrdemDiaSerializer,
-                           **kwargs)
+                return ModelTimeRefreshViewSet
+
+            viewset = create_class()
+            viewset.__name__ = '%sTimeRefreshViewSet' % _model.__name__
+            return viewset
+
+        for app, description_class in set_description.items():
+            built_sets[app] = {}
+            for description in description_class:
+                if isinstance(description, dict):
+                    built_sets[app][
+                        description['model']._meta.model_name] = build(
+                            description['model'],
+                            _field_to_filter_date=description.get(
+                                'field_to_filter_date', None),
+                            _fields=description.get('fields', None),
+                            _serializer_class=description.get(
+                                'serializer_class', None)
+                    )
+                else:
+                    built_sets[app][description._meta.model_name] = build(
+                        description)
+        return built_sets
 
 
-class MateriaLegislativaViewSet(TimeRefreshMobileMixin):
-    serializer_class = MateriaLegislativaSerializer
-    queryset = MateriaLegislativa.objects.all().order_by('-data_apresentacao')
-    field_to_filter_date = 'data_apresentacao'
+TimeRefreshSetViews = TimeRefreshMobileMixin.build_class(
+    set_description={
+        'base': [Autor, ],
+        'sessao': [
+            OrdemDia, ExpedienteMateria,
+            {
+                'model': SessaoPlenaria,
+                'field_to_filter_date': ('data_inicio', 'hora_fim'),
+            },
+        ],
+        'materia': [
+            {
+                'model': MateriaLegislativa,
+                'field_to_filter_date': ('data_apresentacao', ),
+            }
+        ],
+    }
+)
 
 
-class AutorViewSet(TimeRefreshMobileMixin):
-    serializer_class = AutorSerializer
-    queryset = Autor.objects.all()
-    field_to_filter_date = None
+class _AutorViewSet(TimeRefreshSetViews['base']['autor']):
 
     @list_route()
     def parlamentar(self, request, *args, **kwargs):
@@ -200,3 +254,6 @@ class AutorViewSet(TimeRefreshMobileMixin):
 
         serializer = self.get_serializer(page, many=True)
         return Response(serializer.data)
+
+
+TimeRefreshSetViews['base']['autor'] = _AutorViewSet
