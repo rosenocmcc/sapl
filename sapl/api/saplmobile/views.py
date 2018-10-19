@@ -3,7 +3,7 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.utils.timezone import utc
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,9 +13,10 @@ from reversion.models import Version
 from sapl.api.apps import time_refresh_models
 from sapl.api.saplmobile.serializers import SessaoPlenariaSerializer,\
     OrdemDiaSerializer, ExpedienteMateriaSerializer,\
-    MateriaLegislativaSerializer, AutorSerializer
+    MateriaLegislativaSerializer, AutorSerializer, AutorParlamentarSerializer
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
+from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, ExpedienteMateria, OrdemDia
 
 
@@ -186,3 +187,16 @@ class AutorViewSet(TimeRefreshMobileMixin):
     serializer_class = AutorSerializer
     queryset = Autor.objects.all()
     field_to_filter_date = None
+
+    @list_route()
+    def parlamentar(self, request, *args, **kwargs):
+        qs = Parlamentar.objects.all()
+        qs = self.queryset_refresh(qs, field_to_filter_date=None)
+
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = AutorParlamentarSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(page, many=True)
+        return Response(serializer.data)

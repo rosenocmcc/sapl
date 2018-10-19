@@ -2,13 +2,14 @@ from datetime import datetime
 import os
 
 from django.utils.timezone import make_aware
+from easy_thumbnails.files import get_thumbnailer
 from easy_thumbnails.templatetags.thumbnail import thumbnail
-from image_cropping.utils import get_backend
 from rest_framework import serializers
-from rest_framework.relations import RelatedField, StringRelatedField
+from rest_framework.relations import StringRelatedField
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa
+from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria,\
     RegistroVotacao
 
@@ -44,48 +45,54 @@ class AutorSerializer(serializers.ModelSerializer):
         model = Autor
         fields = ('id', 'nome', 'fotografia', 'file_date_updated')
 
+    def thumbnail(self, obj):
+
+        thumb = get_thumbnailer(obj.fotografia)
+
+        return thumb.get_thumbnail({
+            'size': (128, 128),
+            'box':  obj.cropping,
+            'crop': True,
+            'detail': True,
+        })
+
     def get_fotografia(self, obj):
         try:
-            if obj.autor_related:
-                if hasattr(obj.autor_related, 'fotografia'):
-                    thumbnail_url = get_backend().get_thumbnail_url(
-                        obj.autor_related.fotografia,
-                        {
-                            'size': (128, 128),
-                            'box':  obj.autor_related.cropping,
-                            'crop': True,
-                            'detail': True,
-                        }
-                    )
+            if isinstance(obj, Autor):
+                obj = obj.autor_related
+            if obj:
+                if hasattr(obj, 'fotografia'):
+                    return self.thumbnail(obj).url
 
-                    return thumbnail_url
         except:
             return ''
         return ''
 
     def get_file_date_updated(self, obj):
-        if obj.autor_related:
-            if hasattr(obj.autor_related, 'fotografia'):
-                file = obj.autor_related.fotografia
+        if isinstance(obj, Autor):
+            obj = obj.autor_related
+        if obj:
+            if hasattr(obj, 'fotografia'):
+                file = obj.fotografia
                 try:
-                    thumbnail_url = get_backend().get_thumbnail_url(
-                        obj.autor_related.fotografia,
-                        {
-                            'size': (128, 128),
-                            'box':  obj.autor_related.cropping,
-                            'crop': True,
-                            'detail': True,
-                        }
-                    )
+                    thumbnail = self.thumbnail(obj)
                     path = file.path.split("/")
-                    path[-1] = thumbnail_url.split("/")[-1]
+                    path[-1] = thumbnail.name.split("/")[-1]
                     path = "/".join(path)
-
                     lastmodified = os.stat(path).st_mtime
-                    return make_aware(datetime.utcfromtimestamp(lastmodified)).isoformat(timespec='milliseconds')[:-6]
-                except:
+
+                    return make_aware(datetime.utcfromtimestamp(
+                        lastmodified)).isoformat(timespec='milliseconds')[:-6]
+                except Exception as e:
                     return None
         return None
+
+
+class AutorParlamentarSerializer(AutorSerializer):
+    nome = serializers.CharField(source="nome_parlamentar")
+
+    class Meta(AutorSerializer.Meta):
+        model = Parlamentar
 
 
 class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
