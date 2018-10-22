@@ -6,9 +6,10 @@ from easy_thumbnails.files import get_thumbnailer
 from easy_thumbnails.templatetags.thumbnail import thumbnail
 from rest_framework import serializers
 from rest_framework.relations import StringRelatedField
+from rest_framework.serializers import ModelSerializer
 
 from sapl.base.models import Autor
-from sapl.materia.models import MateriaLegislativa
+from sapl.materia.models import MateriaLegislativa, Anexada, Autoria
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria,\
     RegistroVotacao
@@ -88,6 +89,14 @@ class AutorSerializer(serializers.ModelSerializer):
         return None
 
 
+class AutoriaSerializer(serializers.ModelSerializer):
+    autor = AutorSerializer()
+
+    class Meta:
+        model = Autoria
+        fields = '__all__'
+
+
 class AutorParlamentarSerializer(AutorSerializer):
     nome = serializers.CharField(source="nome_parlamentar")
 
@@ -99,7 +108,8 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
     tipo = serializers.StringRelatedField(many=False)
     tipo_sigla = serializers.SerializerMethodField()
     file_date_updated = serializers.SerializerMethodField()
-    autores = AutorSerializer(many=True)
+    autoria = AutoriaSerializer(
+        many=True, source='autoria_set', read_only=True)
     texto_original = serializers.SerializerMethodField()
 
     class Meta:
@@ -113,7 +123,7 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
                   'data_apresentacao',
                   'ementa',
                   'texto_original',
-                  'autores',
+                  'autoria',
                   'file_date_updated'
                   )
 
@@ -136,9 +146,31 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
             return None
 
 
+class MateriaAnexadaSerializer(serializers.ModelSerializer):
+    materia_anexada = MateriaLegislativaSerializerMixin()
+
+    class Meta:
+        model = Anexada
+        fields = '__all__'
+
+
+class MateriaPrincipalSerializer(serializers.ModelSerializer):
+    materia_principal = MateriaLegislativaSerializerMixin()
+
+    class Meta:
+        model = Anexada
+        fields = '__all__'
+
+
 class MateriaLegislativaSerializer(MateriaLegislativaSerializerMixin):
-    anexadas = MateriaLegislativaSerializerMixin(many=True)
-    anexo_de = MateriaLegislativaSerializerMixin(many=True)
+    anexadas = MateriaAnexadaSerializer(many=True, read_only=True,
+                                        source='materia_principal_set')
+
+    anexo_de = MateriaPrincipalSerializer(many=True, read_only=True,
+                                          source='materia_anexada_set')
+
+    #anexadas = MateriaLegislativaSerializerMixin(many=True)
+    #anexo_de = MateriaLegislativaSerializerMixin(many=True)
 
     class Meta(MateriaLegislativaSerializerMixin.Meta):
 
@@ -153,7 +185,7 @@ class MateriaLegislativaSerializer(MateriaLegislativaSerializerMixin):
                   'texto_original',
                   'anexadas',
                   'anexo_de',
-                  'autores',
+                  'autoria',
                   'file_date_updated'
                   )
 
