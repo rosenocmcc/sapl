@@ -18,7 +18,8 @@ from sapl.api.saplmobile.serializers import SessaoPlenariaSerializer,\
     MateriaLegislativaSerializer, AutorSerializer, AutorParlamentarSerializer,\
     OrdemDiaDiaDiaSerializer
 from sapl.base.models import Autor
-from sapl.materia.models import MateriaLegislativa, Anexada, Autoria
+from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
+    DocumentoAcessorio
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, ExpedienteMateria, OrdemDia
 
@@ -231,7 +232,7 @@ TimeRefreshSetViews = TimeRefreshMobileMixin.build_class(
             },
         ],
         'materia': [
-            Anexada, Autoria,
+            Anexada, Autoria, DocumentoAcessorio,
             {
                 'model': MateriaLegislativa,
                 'field_to_filter_date': ('data_apresentacao', ),

@@ -9,7 +9,8 @@ from rest_framework.relations import StringRelatedField
 from rest_framework.serializers import ModelSerializer
 
 from sapl.base.models import Autor
-from sapl.materia.models import MateriaLegislativa, Anexada, Autoria
+from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
+    DocumentoAcessorio
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria,\
     RegistroVotacao
@@ -220,3 +221,24 @@ class ExpedienteMateriaSerializer(SessaoSerializerMixin):
 class OrdemDiaDiaDiaSerializer(SessaoSerializerMixin):
     class Meta(SessaoSerializerMixin.Meta):
         model = OrdemDia
+
+
+class DocumentoAcessorioSerializer(serializers.ModelSerializer):
+    tipo = serializers.StringRelatedField(many=False)
+    arquivo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DocumentoAcessorio
+        fields = ('id',
+                  'tipo',
+                  'arquivo',
+                  'nome',
+                  'data',
+                  'autor',
+                  'ementa',
+                  'indexacao',
+                  'materia'
+                  )
+
+    def get_arquivo(self, obj):
+        return obj.arquivo.url
