@@ -226,6 +226,7 @@ class OrdemDiaDiaDiaSerializer(SessaoSerializerMixin):
 class DocumentoAcessorioSerializer(serializers.ModelSerializer):
     tipo = serializers.StringRelatedField(many=False)
     arquivo = serializers.SerializerMethodField()
+    file_date_updated = serializers.SerializerMethodField()
 
     class Meta:
         model = DocumentoAcessorio
@@ -237,8 +238,19 @@ class DocumentoAcessorioSerializer(serializers.ModelSerializer):
                   'autor',
                   'ementa',
                   'indexacao',
-                  'materia'
+                  'materia',
+                  'file_date_updated'
                   )
 
     def get_arquivo(self, obj):
         return obj.arquivo.url
+
+    def get_file_date_updated(self, obj):
+        file = obj.arquivo
+        try:
+            lastmodified = os.stat(file.path).st_mtime
+            return make_aware(
+                datetime.utcfromtimestamp(lastmodified)
+            ).isoformat(timespec='milliseconds')[:-6]
+        except Exception as e:
+            return None
