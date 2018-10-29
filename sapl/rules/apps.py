@@ -1,13 +1,7 @@
 from builtins import LookupError
-
-<<<<<<< HEAD
-import django
 import logging
 
-from django.apps import apps
-=======
 from django import apps
->>>>>>> reformula time_refresh separando por model
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import _get_all_permissions
 from django.core import exceptions
@@ -41,16 +35,10 @@ def create_proxy_permissions(
     # print(app_config)
 
     try:
-<<<<<<< HEAD
         logger.info("Tentando obter modelo de permissão do app.")
-        Permission = apps.get_model('auth', 'Permission')
+        Permission = apps.apps.get_model('auth', 'Permission')
     except LookupError as e:
         logger.error(str(e))
-=======
-        Permission = apps.apps.get_model('auth', 'Permission')
-    except LookupError:
->>>>>>> reformula time_refresh separando por model
-        return
 
     if not router.allow_migrate_model(using, Permission):
         return
@@ -132,12 +120,12 @@ def create_proxy_permissions(
     for perm in perms:
         if len(perm.name) > permission_name_max_length:
             logger.error("The permission name %s of %s.%s "
-                        "is longer than %s characters" % (
-                            perm.name,
-                            perm.content_type.app_label,
-                            perm.content_type.model,
-                            permission_name_max_length,
-                        ))
+                         "is longer than %s characters" % (
+                             perm.name,
+                             perm.content_type.app_label,
+                             perm.content_type.model,
+                             permission_name_max_length,
+                         ))
             raise exceptions.ValidationError(
                 'The permission name %s of %s.%s '
                 'is longer than %s characters' % (
