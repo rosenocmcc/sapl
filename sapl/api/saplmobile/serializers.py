@@ -6,7 +6,6 @@ from easy_thumbnails.files import get_thumbnailer
 from easy_thumbnails.templatetags.thumbnail import thumbnail
 from rest_framework import serializers
 from rest_framework.relations import StringRelatedField
-from rest_framework.serializers import ModelSerializer
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
@@ -85,7 +84,7 @@ class AutorSerializer(serializers.ModelSerializer):
 
                     return make_aware(datetime.utcfromtimestamp(
                         lastmodified)).isoformat(timespec='milliseconds')[:-6]
-                except Exception as e:
+                except:
                     return None
         return None
 
@@ -105,12 +104,48 @@ class AutorParlamentarSerializer(AutorSerializer):
         model = Parlamentar
 
 
+class DocumentoAcessorioSerializer(serializers.ModelSerializer):
+    tipo = serializers.StringRelatedField(many=False)
+    arquivo = serializers.SerializerMethodField()
+    file_date_updated = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DocumentoAcessorio
+        fields = ('id',
+                  'tipo',
+                  'arquivo',
+                  'nome',
+                  'data',
+                  'autor',
+                  'ementa',
+                  'indexacao',
+                  'materia',
+                  'file_date_updated'
+                  )
+
+    def get_arquivo(self, obj):
+        return obj.arquivo.url
+
+    def get_file_date_updated(self, obj):
+        file = obj.arquivo
+        try:
+            lastmodified = os.stat(file.path).st_mtime
+            return make_aware(
+                datetime.utcfromtimestamp(lastmodified)
+            ).isoformat(timespec='milliseconds')[:-6]
+        except:
+            return None
+
+
 class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
     tipo = serializers.StringRelatedField(many=False)
     tipo_sigla = serializers.SerializerMethodField()
     file_date_updated = serializers.SerializerMethodField()
     autoria = AutoriaSerializer(
         many=True, source='autoria_set', read_only=True)
+
+    documentos_acessorios = DocumentoAcessorioSerializer(
+        many=True, source='documentoacessorio_set', read_only=True)
     texto_original = serializers.SerializerMethodField()
 
     class Meta:
@@ -125,7 +160,8 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
                   'ementa',
                   'texto_original',
                   'autoria',
-                  'file_date_updated'
+                  'file_date_updated',
+                  'documentos_acessorios'
                   )
 
     def get_texto_original(self, obj):
@@ -143,7 +179,7 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
             return make_aware(
                 datetime.utcfromtimestamp(lastmodified)
             ).isoformat(timespec='milliseconds')[:-6]
-        except Exception as e:
+        except:
             return None
 
 
@@ -221,36 +257,3 @@ class ExpedienteMateriaSerializer(SessaoSerializerMixin):
 class OrdemDiaDiaDiaSerializer(SessaoSerializerMixin):
     class Meta(SessaoSerializerMixin.Meta):
         model = OrdemDia
-
-
-class DocumentoAcessorioSerializer(serializers.ModelSerializer):
-    tipo = serializers.StringRelatedField(many=False)
-    arquivo = serializers.SerializerMethodField()
-    file_date_updated = serializers.SerializerMethodField()
-
-    class Meta:
-        model = DocumentoAcessorio
-        fields = ('id',
-                  'tipo',
-                  'arquivo',
-                  'nome',
-                  'data',
-                  'autor',
-                  'ementa',
-                  'indexacao',
-                  'materia',
-                  'file_date_updated'
-                  )
-
-    def get_arquivo(self, obj):
-        return obj.arquivo.url
-
-    def get_file_date_updated(self, obj):
-        file = obj.arquivo
-        try:
-            lastmodified = os.stat(file.path).st_mtime
-            return make_aware(
-                datetime.utcfromtimestamp(lastmodified)
-            ).isoformat(timespec='milliseconds')[:-6]
-        except Exception as e:
-            return None
