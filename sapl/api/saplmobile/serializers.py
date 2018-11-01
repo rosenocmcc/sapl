@@ -9,7 +9,7 @@ from rest_framework.relations import StringRelatedField
 
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
-    DocumentoAcessorio
+    DocumentoAcessorio, Tramitacao
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria,\
     RegistroVotacao
@@ -223,8 +223,27 @@ class MateriaLegislativaSerializer(MateriaLegislativaSerializerMixin):
                   'anexadas',
                   'anexo_de',
                   'autoria',
-                  'file_date_updated'
+                  'file_date_updated',
+                  'documentos_acessorios'
                   )
+
+
+class TramitacaoSerializer(serializers.ModelSerializer):
+    status = StringRelatedField()
+    unidade_tramitacao_local = StringRelatedField()
+    unidade_tramitacao_destino = StringRelatedField()
+
+    class Meta:
+        model = Tramitacao
+        fields = (
+            'id',
+            'data_tramitacao',
+            'texto',
+            'status',
+            'materia',
+            'unidade_tramitacao_local',
+            'unidade_tramitacao_destino'
+        )
 
 
 class RegistroVotacaoSerializer(serializers.ModelSerializer):
