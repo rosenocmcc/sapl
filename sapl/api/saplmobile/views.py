@@ -19,7 +19,8 @@ from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
     DocumentoAcessorio, Tramitacao
 from sapl.norma.models import NormaJuridica, LegislacaoCitada
 from sapl.parlamentares.models import Parlamentar
-from sapl.sessao.models import SessaoPlenaria, ExpedienteMateria, OrdemDia
+from sapl.sessao.models import SessaoPlenaria, ExpedienteMateria, OrdemDia,\
+    RegistroVotacao
 
 
 class TimeRefreshDatabaseView(APIView):
@@ -223,7 +224,7 @@ TimeRefreshSetViews = TimeRefreshMobileMixin.build_class(
     set_description={
         'base': [Autor, ],
         'sessao': [
-            OrdemDia, ExpedienteMateria,
+            OrdemDia, ExpedienteMateria, RegistroVotacao,
             {
                 'model': SessaoPlenaria,
                 'field_to_filter_date': ('data_inicio', 'hora_fim'),

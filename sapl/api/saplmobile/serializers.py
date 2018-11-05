@@ -273,13 +273,14 @@ class LegislacaoCitadaSerializer(serializers.ModelSerializer):
 
 
 class RegistroVotacaoSerializer(serializers.ModelSerializer):
+    tipo_resultado_votacao = StringRelatedField()
+
     class Meta:
         model = RegistroVotacao
         fields = '__all__'
 
 
 class SessaoSerializerMixin(serializers.ModelSerializer):
-    materia = MateriaLegislativaSerializer()
     votacao = RegistroVotacaoSerializer(
         many=True, source='registrovotacao_set')
 
@@ -299,6 +300,6 @@ class ExpedienteMateriaSerializer(SessaoSerializerMixin):
         model = ExpedienteMateria
 
 
-class OrdemDiaDiaDiaSerializer(SessaoSerializerMixin):
+class OrdemDiaSerializer(SessaoSerializerMixin):
     class Meta(SessaoSerializerMixin.Meta):
         model = OrdemDia

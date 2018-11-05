@@ -271,7 +271,7 @@ class ExpedienteMateria(AbstractOrdemDia):
     class Meta:
         verbose_name = _('Matéria do Expediente')
         verbose_name_plural = _('Matérias do Expediente')
-        ordering = ['numero_ordem']
+        ordering = ['-sessao_plenaria', 'numero_ordem']
 
 
 @reversion.register()
@@ -383,7 +383,7 @@ class OrdemDia(AbstractOrdemDia):
     class Meta:
         verbose_name = _('Matéria da Ordem do Dia')
         verbose_name_plural = _('Matérias da Ordem do Dia')
-        ordering = ['numero_ordem']
+        ordering = ['-sessao_plenaria', 'numero_ordem']
 
 
 @reversion.register()
@@ -448,6 +448,7 @@ class RegistroVotacao(models.Model):
     class Meta:
         verbose_name = _('Votação')
         verbose_name_plural = _('Votações')
+        ordering = ('-materia', 'ordem', 'expediente')
 
     def __str__(self):
         return _('Ordem: %(ordem)s - Votação: %(votacao)s - '
