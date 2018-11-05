@@ -10,6 +10,7 @@ from rest_framework.relations import StringRelatedField
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
     DocumentoAcessorio, Tramitacao
+from sapl.norma.models import NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria,\
     RegistroVotacao
@@ -164,13 +165,13 @@ class MateriaLegislativaSerializerMixin(serializers.ModelSerializer):
                   'documentos_acessorios'
                   )
 
+    def get_tipo_sigla(self, obj):
+        return obj.tipo.sigla
+
     def get_texto_original(self, obj):
         if obj.texto_original:
             return obj.texto_original.url
         return ''
-
-    def get_tipo_sigla(self, obj):
-        return obj.tipo.sigla
 
     def get_file_date_updated(self, obj):
         file = obj.texto_original
@@ -244,6 +245,21 @@ class TramitacaoSerializer(serializers.ModelSerializer):
             'unidade_tramitacao_local',
             'unidade_tramitacao_destino'
         )
+
+
+class NormaJuridicaSerializer(serializers.ModelSerializer):
+    tipo = serializers.StringRelatedField()
+
+    class Meta:
+        model = NormaJuridica
+        fields = ('id',
+                  'numero',
+                  'ano',
+                  'data',
+                  'data_publicacao',
+                  'ementa',
+                  'tipo',
+                  )
 
 
 class RegistroVotacaoSerializer(serializers.ModelSerializer):

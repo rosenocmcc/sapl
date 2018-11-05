@@ -20,6 +20,7 @@ from sapl.api.saplmobile.serializers import SessaoPlenariaSerializer,\
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
     DocumentoAcessorio, Tramitacao
+from sapl.norma.models import LegislacaoCitada, NormaJuridica
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, ExpedienteMateria, OrdemDia
 
@@ -238,6 +239,9 @@ TimeRefreshSetViews = TimeRefreshMobileMixin.build_class(
                 'field_to_filter_date': ('data_apresentacao', ),
             }
         ],
+        'norma': [
+            NormaJuridica
+        ]
     }
 )
 
