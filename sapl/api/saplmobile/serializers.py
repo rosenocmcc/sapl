@@ -10,7 +10,7 @@ from rest_framework.relations import StringRelatedField
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
     DocumentoAcessorio, Tramitacao
-from sapl.norma.models import NormaJuridica
+from sapl.norma.models import NormaJuridica, LegislacaoCitada
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, OrdemDia, ExpedienteMateria,\
     RegistroVotacao
@@ -259,6 +259,16 @@ class NormaJuridicaSerializer(serializers.ModelSerializer):
                   'data_publicacao',
                   'ementa',
                   'tipo',
+                  )
+
+
+class LegislacaoCitadaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LegislacaoCitada
+        fields = ('id',
+                  'materia',
+                  'norma'
                   )
 
 

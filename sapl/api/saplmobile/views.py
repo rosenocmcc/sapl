@@ -13,14 +13,11 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from reversion.models import Version
 
 from sapl.api.apps import time_refresh_models
-from sapl.api.saplmobile.serializers import SessaoPlenariaSerializer,\
-    ExpedienteMateriaSerializer,\
-    MateriaLegislativaSerializer, AutorSerializer, AutorParlamentarSerializer,\
-    OrdemDiaDiaDiaSerializer
+from sapl.api.saplmobile.serializers import AutorParlamentarSerializer
 from sapl.base.models import Autor
 from sapl.materia.models import MateriaLegislativa, Anexada, Autoria,\
     DocumentoAcessorio, Tramitacao
-from sapl.norma.models import LegislacaoCitada, NormaJuridica
+from sapl.norma.models import NormaJuridica, LegislacaoCitada
 from sapl.parlamentares.models import Parlamentar
 from sapl.sessao.models import SessaoPlenaria, ExpedienteMateria, OrdemDia
 
@@ -240,7 +237,7 @@ TimeRefreshSetViews = TimeRefreshMobileMixin.build_class(
             }
         ],
         'norma': [
-            NormaJuridica
+            NormaJuridica, LegislacaoCitada
         ]
     }
 )
