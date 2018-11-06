@@ -104,26 +104,13 @@ HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 SEARCH_BACKEND = 'haystack.backends.whoosh_backend.WhooshEngine'
 SEARCH_URL = ('PATH', PROJECT_DIR.child('whoosh'))
 USE_SOLR = config('USE_SOLR', cast=bool, default=False)
-SOLR_URL = config('SOLR_URL', cast=str, default='')
-SOLR_HOST = config('SOLR_HOST', cast=str, default='localhost')
+SOLR_URL = config('SOLR_URL', cast=str, default='http://localhost:8983')
 SOLR_COLLECTION = config('SOLR_COLLECTION', cast=str, default='sapl')
+
+
 if USE_SOLR:
     SEARCH_BACKEND = 'haystack.backends.solr_backend.SolrEngine'
-    if SOLR_URL:
-        SEARCH_URL = ('URL', SOLR_URL)
-    elif SOLR_HOST and SOLR_COLLECTION:
-        SEARCH_URL = ('URL', 'http://{}:8983/solr/{}'.format(SOLR_HOST, SOLR_COLLECTION))
-    elif SOLR_HOST and not SOLR_COLLECTION:
-        SEARCH_URL = ('URL', 'http://{}:8983/solr/sapl'.format(SOLR_HOST))
-    elif SOLR_COLLECTION and not SOLR_HOST:
-        SEARCH_URL = ('URL', 'http://localhost:8983/solr/sapl'.format(SOLR_COLLECTION))
-    else:
-        SEARCH_URL = ('URL', 'http://localhost:8983/solr/sapl')
-
-    # print("Solr URL: {}".format(SEARCH_URL[1]))
-    # ...or for multicore...
-    # 'URL': 'http://127.0.0.1:8983/solr/mysite',
-
+    SEARCH_URL = ('URL', '{}/solr/{}'.format(SOLR_URL, SOLR_COLLECTION))
 
 HAYSTACK_CONNECTIONS = {
     'default': {

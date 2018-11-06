@@ -13,13 +13,14 @@ class SolrClient:
     STATUS_CORE = "{}/admin/cores?action=STATUS&name={}"
     EXISTS_COLLECTION = "{}://{}:{}/solr/{}/admin/ping?wt=json"
     OPTIMIZE_COLLECTION = "{}://{}:{}/solr/{}/update?optimize=true&wt=json"
-    CREATE_COLLECTION = "{}://{}:{}/solr/admin/collections?action=CREATE" \
+    CREATE_COLLECTION = "{}://{}:{}/solr/admin/collections?action=CREATE"
                         "&name={}&collection.configName={}&numShards={}&replicationFactor={}&wt=json"
     DELETE_COLLECTION = "{}://{}:{}/solr/admin/collections?action=DELETE&name={}&wt=json"
     DELETE_DATA = "{}://{}:{}/solr/{}/update?commitWithin=1000&overwrite=true&wt=json"
+    QUERY_DATA = "{}://{}:{}/solr/{}/select?q=*:*"
 
     CONFIGSET_NAME = "sapl_configset"
-    NUM_SHARDS = 1
+    NUM_SHARDS = 3
     NUM_REPLICAS = 1
 
     def __init__(self, address='localhost', port=8983, protocol='http'):
@@ -27,29 +28,37 @@ class SolrClient:
         self.address = address
         self.port = port
 
-    def status_collection(self, collection_name):
+    def get_num_docs(self, collection_name):
+        final_url = self.QUERY_DATA.format(self.protocol, self.address, self.port, collection_name)
+        res = requests.get(final_url)
+        dic = res.json()
+        num_docs = dic["response"]["numFound"]
+        return num_docs
 
-        col_url = self.STATUS_COLLECTION.format(self.protocol, self.address, self.port, collection_name)
-        resp = requests.get(col_url)
-        status_cluster = resp.json()
-        # TODO: test if collection exists!
-        shards = status_cluster['cluster']['collections'][collection_name]['shards']
-        num_docs = 0
-        deleted_docs = 0
-        for shard in shards.values():
-            for replica in shard['replicas'].values():
-                replica_base_url = replica['base_url']
-                replica_core = replica['core']
-                req_url = self.STATUS_CORE.format(replica_base_url, replica_core)
-                resp = requests.get(req_url)
-                data = resp.json()
-                # TODO: test if collection exists!
-                prefix = data['status'][replica_core]['index']
-                num_docs += prefix['numDocs']
-                deleted_docs += prefix['deletedDocs']
-                # get a single replica per shard
-                break
-        return num_docs, deleted_docs
+    # def get_num_docs(self, collection_name):
+    #
+    #     col_url = self.STATUS_COLLECTION.format(self.protocol, self.address, self.port, collection_name)
+    #     resp = requests.get(col_url)
+    #     status_cluster = resp.json()
+    #     # TODO: test if collection exists!
+    #     shards = status_cluster['cluster']['collections'][collection_name]['shards']
+    #     num_docs = 0
+    #     deleted_docs = 0
+    #     for shard in shards.values():
+    #         for replica in shard['replicas'].values():
+    #             replica_base_url = replica['base_url']
+    #             replica_core = replica['core']
+    #             import ipdb; ipdb.set_trace()
+    #             req_url = self.STATUS_CORE.format(replica_base_url, replica_core)
+    #             resp = requests.get(req_url)
+    #             data = resp.json()
+    #             # TODO: test if collection exists!
+    #             prefix = data['status'][replica_core]['index']
+    #             num_docs += prefix['numDocs']
+    #             deleted_docs += prefix['deletedDocs']
+    #             # get a single replica per shard
+    #             break
+    #     return num_docs, deleted_docs
 
     def list_collections(self):
         req_url = self.LIST_COLLECTIONS.format(self.protocol, self.address, self.port)
@@ -133,23 +142,26 @@ class SolrClient:
         else:
             print("Collection '%s' data deleted successfully!" % collection_name)
 
-            indexed, deleted = self.status_collection(collection_name)
-            print("Num docs: %s" % indexed)
-            print("Delete docs: %s" % deleted)
+            num_docs = self.get_num_docs(collection_name)
+            print("Num docs: %s" % num_docs)
 
 
 if __name__ == '__main__':
 
     args = sys.argv
     if len(args) < 2:
-        print("Usage: python3 docker_solr_init.py <collection name> <address>")
+        print("Usage: python3 docker_solr_init.py <collection name> <address> [port]")
         sys.exit(-1)
     collection = args[1]
 
     client = SolrClient()
-    if len(args) == 3:
-        hostname = args[2]
-        client = SolrClient(address=hostname)
+
+    hostname = args[2]
+    if len(args) == 4:
+        port = args[3]
+    else:
+        port = 8983
+    client = SolrClient(address=hostname, port=port)
 
     if not client.exists_collection(collection):
         print("Collection '%s' doesn't exists. Creating a new one..." % collection)
@@ -159,9 +171,7 @@ if __name__ == '__main__':
     else:
         print("Collection '%s' exists. Updating indexes..." % collection)
 
-    collection_data = client.status_collection(collection)
-    indexed, _ = client.status_collection(collection)
-    del _
-    if indexed == 0:
+    num_docs = client.get_num_docs(collection)
+    if num_docs == 0:
         print("Performing a full reindex of '%s' collection..." % collection)
         p = subprocess.call(["python3", "manage.py", "rebuild_index", "--noinput"])

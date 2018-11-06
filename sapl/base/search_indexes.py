@@ -1,4 +1,5 @@
 import os.path
+import logging
 import re
 import string
 
@@ -64,7 +65,7 @@ class TextExtractField(CharField):
         msg = 'Erro inesperado processando arquivo %s erro: %s' % (
             arquivo.path, error)
         print(msg, error)
-        logger.error(msg, error)
+        self.logger.error(msg, error)
 
     def file_extractor(self, arquivo):
         if not os.path.exists(arquivo.path) or \
@@ -76,6 +77,7 @@ class TextExtractField(CharField):
             try:
                 return self.solr_extraction(arquivo)
             except Exception as err:
+                import ipdb; ipdb.set_trace()
                 print(str(err))
                 self.print_error(arquivo, err)
 
@@ -87,7 +89,7 @@ class TextExtractField(CharField):
                 self.print_error(arquivo)
             except ExtensionNotSupported as err:
                 print(str(err))
-                logger.error(str(err))
+                self.logger.error(str(err))
             except Exception as err:
                 print(str(err))
                 self.print_error(arquivo, str(err))
