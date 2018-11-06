@@ -37,6 +37,15 @@ class TextExtractField(CharField):
             self.model_attr = (self.model_attr, )
 
     def solr_extraction(self, arquivo):
+        # if arquivo.path.endswith(".rtf"):
+        #     return ''
+        #
+        # data = textract.process(
+        #     arquivo.path,
+        #     language='pt-br').decode('utf-8').replace('\n', ' ').replace(
+        #     '\t', ' ')
+        # # print(data)
+        # return data
         if not self.backend:
             self.backend = connections['default'].get_backend()
         try:
@@ -46,7 +55,6 @@ class TextExtractField(CharField):
             self.print_error(arquivo, e)
             data = ''
         return data
-
 
     def whoosh_extraction(self, arquivo):
 
@@ -77,7 +85,6 @@ class TextExtractField(CharField):
             try:
                 return self.solr_extraction(arquivo)
             except Exception as err:
-                import ipdb; ipdb.set_trace()
                 print(str(err))
                 self.print_error(arquivo, err)
 
