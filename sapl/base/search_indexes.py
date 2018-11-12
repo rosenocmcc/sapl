@@ -50,15 +50,15 @@ class TextExtractField(CharField):
         try:
             with open(arquivo.path, 'rb') as f:
                 content = self.backend.extract_file_contents(f)
-                if not content:
+                if not content or not content['contents']:
                     return ''
-                if content['contents']:
-                    data = content['contents']
-                else:
-                    data = ''
+                data = content['contents']
         except Exception as e:
             self.print(e)
-            self.print_error(arquivo)
+            self.print('erro processando arquivo: ' % arquivo.path)
+
+            self.logger.error(arquivo.path)
+            self.logger.error('erro processando arquivo: ' % arquivo.path)
             data = ''
         return data
 
