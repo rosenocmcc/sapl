@@ -44,15 +44,21 @@ class TextExtractField(CharField):
         #     arquivo.path,
         #     language='pt-br').decode('utf-8').replace('\n', ' ').replace(
         #     '\t', ' ')
-        # # print(data)
         # return data
         if not self.backend:
             self.backend = connections['default'].get_backend()
         try:
             with open(arquivo.path, 'rb') as f:
-                data = self.backend.extract_file_contents(f)['contents']
+                content = self.backend.extract_file_contents(f)
+                if not content:
+                    return ''
+                if content['contents']:
+                    data = content['contents']
+                else:
+                    data = ''
         except Exception as e:
-            self.print_error(arquivo, e)
+            self.print(e)
+            self.print_error(arquivo)
             data = ''
         return data
 
